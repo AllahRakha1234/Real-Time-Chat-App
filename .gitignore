@@ -1,0 +1,52 @@
+# Global ignores
+node_modules/
+.env
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+
+# Logs and coverage reports
+logs/
+*.log
+*.pid
+*.seed
+*.gz
+*.tgz
+coverage/
+*.lcov
+
+# OS-specific
+Thumbs.db
+ehthumbs.db
+
+# IDEs/editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Runtime files
+*.swp
+*.swo
+
+# Frontend specific (React/Vite/Cra)
+frontend/node_modules/
+frontend/.env
+frontend/build/
+frontend/dist/
+
+# Backend specific (Express, etc.)
+backend/node_modules/
+backend/.env
+backend/dist/
+backend/uploads/
+backend/*.sqlite
+backend/*.db
+backend/.cache/
+
+# Optional: socket.io temp/debug
+backend/debug.log
