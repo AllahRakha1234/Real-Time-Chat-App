@@ -2,7 +2,7 @@
 
 const Header = () => {
   return (
-    <div>Header</div>
+    <div className="p-10 text-2xl bg-primary font-semibold text-secondary-foreground">Header</div>
   )
 }
 
