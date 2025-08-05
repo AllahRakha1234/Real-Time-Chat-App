@@ -6,6 +6,9 @@ interface User {
   id: string;
   name: string;
   email: string;
+  isAdmin?: boolean;
+  pic?: string;
+  token?: string;
 }
 
 interface AuthState {
@@ -13,8 +16,9 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
 
-  login: (credentials: { email: string; password: string }) => Promise<void>;
+  login: (credentials: { email: string; password: string }) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => void;
+  clearError: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -28,24 +32,45 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
+          console.log("Making login request to:", `${api.defaults.baseURL}/api/user/login`);
+          
           const response = await api.post("/api/user/login", {
             email,
             password,
           });
 
-          const user: User = response.data.user;
-
+          const userData = response.data;
+          
+          // Transform the backend response to match our User interface
+          const user: User = {
+            id: userData._id,
+            name: userData.name,
+            email: userData.email,
+            isAdmin: userData.isAdmin,
+            pic: userData.pic,
+            token: userData.token,
+          };
+          
           set({ user, isLoading: false, error: null });
+          return { success: true, user };
         } catch (err: any) {
+          console.error("Login error:", err);
+          const errorMessage = err.response?.data?.message || err.message || "Login failed";
           set({
-            error: err.response?.data?.message || "Login failed",
+            error: errorMessage,
             isLoading: false,
+            user: null, // Clear user on error
           });
+          return { success: false, error: errorMessage };
         }
       },
 
       logout: () => {
-        set({ user: null });
+        set({ user: null, error: null });
+      },
+
+      clearError: () => {
+        set({ error: null });
       },
     }),
     {

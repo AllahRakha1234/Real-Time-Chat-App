@@ -4,11 +4,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "../store/auth.store";
 import { loginSchema, type LoginSchema } from "../lib/validations/auth";
-
-type LoginFormInputs = {
-  email: string;
-  password: string;
-};
+import { toast } from "sonner";
 
 const LoginPage = () => {
   const {
@@ -18,15 +14,31 @@ const LoginPage = () => {
     reset,
   } = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
-  const { login, isLoading, error } = useAuthStore();
+  const { login, isLoading, error, user, clearError } = useAuthStore();
 
-  const onSubmit = async (data: LoginFormInputs) => {
-    console.log("login called");
-    await login(data);
-    // Clear the states
-    reset();
+  const onSubmit = async (data: LoginSchema) => {
+    // Clear any previous errors
+    clearError();
+
+    try {
+      const result = await login(data);
+
+      if (result.success && result.user) {
+        toast.success("Login successful!");
+        reset();
+      } else if (result.error) {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      console.error("Login error in component:", error);
+      toast.error("Login failed. Please try again.");
+    }
   };
 
   return (
@@ -37,48 +49,64 @@ const LoginPage = () => {
           Log in to your account
         </h2>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           {/* Email Field */}
-          <Controller
-            name="email"
-            control={control}
-            rules={{ required: "Email is required" }}
-            render={({ field }) => (
-              <Input
-                label="Email"
-                placeholder="Enter your email"
-                type="email"
-                {...field}
-              />
-            )}
-          />
-          {errors.email && (
-            <p className="text-red-500 text-sm -mt-2">{errors.email.message}</p>
-          )}
+          <div className="space-y-2">
+            <Controller
+              name="email"
+              control={control}
+              render={({ field, fieldState }) => (
+                <>
+                  <Input
+                    label="Email"
+                    placeholder="Enter your email"
+                    type="email"
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                  {fieldState.error && (
+                    <p className="text-red-500 text-sm ml-1">
+                      {fieldState.error.message}
+                    </p>
+                  )}
+                </>
+              )}
+            />
+          </div>
 
           {/* Password Field */}
-          <Controller
-            name="password"
-            control={control}
-            rules={{ required: "Password is required" }}
-            render={({ field }) => (
-              <Input
-                label="Password"
-                placeholder="Enter your password"
-                type="password"
-                {...field}
-              />
-            )}
-          />
-          {errors.password && (
-            <p className="text-red-500 text-sm -mt-2">
-              {errors.password.message}
-            </p>
-          )}
+          <div className="space-y-2">
+            <Controller
+              name="password"
+              control={control}
+              render={({ field, fieldState }) => (
+                <>
+                  <Input
+                    label="Password"
+                    placeholder="Enter your password"
+                    type="password"
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                  {fieldState.error && (
+                    <p className="text-red-500 text-sm ml-1">
+                      {fieldState.error.message}
+                    </p>
+                  )}
+                </>
+              )}
+            />
+          </div>
 
           {/* Error from store */}
           {error && (
-            <p className="text-red-500 text-sm -mt-2 text-center">{error}</p>
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            </div>
           )}
 
           <Button type="submit" className="mt-6" size="lg" disabled={isLoading}>
