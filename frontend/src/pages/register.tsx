@@ -6,6 +6,7 @@ import { useAuthStore } from "../store/auth.store";
 import { signupSchema, type SignupSchema } from "../lib/validations/auth";
 import { toast } from "sonner";
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const RegisterPage = () => {
   const {
@@ -13,33 +14,42 @@ const RegisterPage = () => {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    watch,
   } = useForm<SignupSchema>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
+      name: "",
       email: "",
       password: "",
+      confirmPassword: "",
+      image: undefined,
     },
   });
 
   const { login, isLoading, error, clearError } = useAuthStore();
+  const watchedImage = watch("image");
 
   const onSubmit = async (data: SignupSchema) => {
     // Clear any previous errors
     clearError();
 
-    try {
-      const result = await login(data);
+    console.log("Form data:", data);
+    console.log("Image data:", data.image);
 
-      if (result.success && result.user) {
-        toast.success("Login successful!");
-        reset();
-      } else if (result.error) {
-        toast.error(result.error);
-      }
-    } catch (error) {
-      console.error("Login error in component:", error);
-      toast.error("Login failed. Please try again.");
-    }
+    // try {
+    //   const result = await login(data);
+
+    //   if (result.success && result.user) {
+    //     toast.success("Login successful!");
+    //     reset();
+    //   } else if (result.error) {
+    //     toast.error(result.error);
+    //   }
+    // } catch (error) {
+    //   console.error("Login error in component:", error);
+    //   toast.error("Login failed. Please try again.");
+    // }
   };
 
   useEffect(() => {
@@ -47,16 +57,19 @@ const RegisterPage = () => {
   }, []);
 
   return (
-    <div className="my-background min-h-screen w-full flex justify-center items-center px-4">
-      <div className="flex flex-col w-full max-w-md bg-white py-12 px-8 sm:px-12 rounded-3xl shadow-lg">
+    <div className="my-background min-h-screen w-full flex justify-center items-center p-4">
+      <div className="flex flex-col w-full max-w-md bg-white py-6 px-8 sm:px-12 rounded-3xl shadow-lg">
         <h1 className="text-3xl font-bold text-center">SmartTalk</h1>
-        <h2 className="text-xl font-medium text-center text-muted-foreground my-4">
+        <h2 className="text-xl font-medium text-center text-muted-foreground my-2">
           Register your account
         </h2>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-y-3"
+        >
           {/* Name Field */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Controller
               name="name"
               control={control}
@@ -82,7 +95,7 @@ const RegisterPage = () => {
           </div>
 
           {/* Email Field */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Controller
               name="email"
               control={control}
@@ -108,7 +121,7 @@ const RegisterPage = () => {
           </div>
 
           {/* Password Field */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Controller
               name="password"
               control={control}
@@ -116,7 +129,7 @@ const RegisterPage = () => {
                 <>
                   <Input
                     label="Password"
-                    placeholder="Enter your password"
+                    placeholder="Enter password"
                     type="password"
                     value={field.value || ""}
                     onChange={field.onChange}
@@ -133,6 +146,71 @@ const RegisterPage = () => {
             />
           </div>
 
+          {/* Confirm Password Field */}
+          <div className="space-y-1">
+            <Controller
+              name="confirmPassword"
+              control={control}
+              render={({ field, fieldState }) => (
+                <>
+                  <Input
+                    label="Password"
+                    placeholder="Enter confirm password"
+                    type="password"
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                  {fieldState.error && (
+                    <p className="text-red-500 text-sm ml-1">
+                      {fieldState.error.message}
+                    </p>
+                  )}
+                </>
+              )}
+            />
+          </div>
+
+          {/* Image Field */}
+          <div className="space-y-1">
+            <Controller
+              name="image"
+              control={control}
+              render={({ field, fieldState }) => {
+                const handleFileChange = (
+                  event: React.ChangeEvent<HTMLInputElement>
+                ) => {
+                  const file = event.target.files?.[0];
+                  field.onChange(file || null);
+                };
+                return (
+                  <>
+                    <Input
+                      label="Image"
+                      placeholder="Select your image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                    />
+                    {watchedImage && (
+                      <p className="text-sm text-green-600 ml-1">
+                        Selected: {watchedImage.name}
+                      </p>
+                    )}
+                    {fieldState.error && (
+                      <p className="text-red-500 text-sm ml-1">
+                        {fieldState.error.message}
+                      </p>
+                    )}
+                  </>
+                );
+              }}
+            />
+          </div>
+
           {/* Error from store */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md p-3">
@@ -141,9 +219,16 @@ const RegisterPage = () => {
           )}
 
           <Button type="submit" className="mt-6" size="lg" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
+            {isLoading ? "Signing up..." : "Signup"}
           </Button>
         </form>
+        <div className="flex justify-center mt-2">
+          <Link to="/">
+            <Button variant="link" size={"sm"}>
+              Login
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );

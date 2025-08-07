@@ -16,7 +16,10 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
 
-  login: (credentials: { email: string; password: string }) => Promise<{ success: boolean; user?: User; error?: string }>;
+  login: (credentials: {
+    email: string;
+    password: string;
+  }) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => void;
   clearError: () => void;
 }
@@ -32,15 +35,18 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          console.log("Making login request to:", `${api.defaults.baseURL}/api/user/login`);
-          
+          console.log(
+            "Making login request to:",
+            `${api.defaults.baseURL}/api/user/login`
+          );
+
           const response = await api.post("/api/user/login", {
             email,
             password,
           });
 
           const userData = response.data;
-          
+
           // Transform the backend response to match our User interface
           const user: User = {
             id: userData._id,
@@ -50,12 +56,13 @@ export const useAuthStore = create<AuthState>()(
             pic: userData.pic,
             token: userData.token,
           };
-          
+
           set({ user, isLoading: false, error: null });
           return { success: true, user };
         } catch (err: any) {
           console.error("Login error:", err);
-          const errorMessage = err.response?.data?.message || err.message || "Login failed";
+          const errorMessage =
+            err.response?.data?.message || err.message || "Login failed";
           set({
             error: errorMessage,
             isLoading: false,
