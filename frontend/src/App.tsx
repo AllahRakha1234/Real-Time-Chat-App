@@ -1,9 +1,13 @@
-import LoginPage from "./pages/login";
+import "./index.css";
+import { RouterProvider } from "react-router-dom";
+import { Toaster } from "./components/ui/sonner";
+import { router } from "@/routes";
 
 function App() {
   return (
     <>
-      <LoginPage />
+      <RouterProvider router={router} />
+      <Toaster />
     </>
   );
 }

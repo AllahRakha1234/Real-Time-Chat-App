@@ -3,19 +3,18 @@ import { Input } from "../components/ui/input";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "../store/auth.store";
-import { loginSchema, type LoginSchema } from "../lib/validations/auth";
+import { signupSchema, type SignupSchema } from "../lib/validations/auth";
 import { toast } from "sonner";
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const {
     control,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<LoginSchema>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<SignupSchema>({
+    resolver: zodResolver(signupSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -24,7 +23,7 @@ const LoginPage = () => {
 
   const { login, isLoading, error, clearError } = useAuthStore();
 
-  const onSubmit = async (data: LoginSchema) => {
+  const onSubmit = async (data: SignupSchema) => {
     // Clear any previous errors
     clearError();
 
@@ -44,18 +43,44 @@ const LoginPage = () => {
   };
 
   useEffect(() => {
-    document.title = "Login - My Chat App";
+    document.title = "Register - My Chat App";
   }, []);
 
   return (
-    <div className="my-background min-h-screen w-full flex justify-center items-center flex-col px-4">
+    <div className="my-background min-h-screen w-full flex justify-center items-center px-4">
       <div className="flex flex-col w-full max-w-md bg-white py-12 px-8 sm:px-12 rounded-3xl shadow-lg">
         <h1 className="text-3xl font-bold text-center">SmartTalk</h1>
         <h2 className="text-xl font-medium text-center text-muted-foreground my-4">
-          Log in to your account
+          Register your account
         </h2>
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+          {/* Name Field */}
+          <div className="space-y-2">
+            <Controller
+              name="name"
+              control={control}
+              render={({ field, fieldState }) => (
+                <>
+                  <Input
+                    label="Name"
+                    placeholder="Enter your name"
+                    type="text"
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                  {fieldState.error && (
+                    <p className="text-red-500 text-sm ml-1">
+                      {fieldState.error.message}
+                    </p>
+                  )}
+                </>
+              )}
+            />
+          </div>
+
           {/* Email Field */}
           <div className="space-y-2">
             <Controller
@@ -115,27 +140,13 @@ const LoginPage = () => {
             </div>
           )}
 
-          {/* Forgot Password */}
-          <div className="flex justify-end -mt-5">
-            <Link to="/forgot-password">
-              <Button variant="link">Forgot Password?</Button>
-            </Link>
-          </div>
-
-          <Button type="submit" className="mt-1" size="lg" disabled={isLoading}>
+          <Button type="submit" className="mt-6" size="lg" disabled={isLoading}>
             {isLoading ? "Logging in..." : "Login"}
           </Button>
         </form>
-        <div className="flex justify-center mt-2">
-          <Link to="/register">
-            <Button variant="link" size={"sm"}>
-              Signup
-            </Button>
-          </Link>
-        </div>
       </div>
     </div>
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
