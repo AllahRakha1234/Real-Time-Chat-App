@@ -11,15 +11,22 @@ interface User {
   token?: string;
 }
 
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
 interface AuthState {
   user: User | null;
   isLoading: boolean;
   error: string | null;
 
-  login: (credentials: {
-    email: string;
-    password: string;
-  }) => Promise<{ success: boolean; user?: User; error?: string }>;
+  login: (
+    credentials: LoginCredentials
+  ) => Promise<{ success: boolean; user?: User; error?: string }>;
+  register: (
+    credentials: FormData
+  ) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => void;
   clearError: () => void;
 }
@@ -68,6 +75,37 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             user: null, // Clear user on error
           });
+          return { success: false, error: errorMessage };
+        }
+      },
+
+      register: async (formData: FormData) => {
+        set({ isLoading: true, error: null });
+
+        try {
+          const response = await api.post("/api/user", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          });
+
+          const userData = response.data;
+
+          const user: User = {
+            id: userData._id,
+            name: userData.name,
+            email: userData.email,
+            isAdmin: userData.isAdmin,
+            pic: userData.pic,
+            token: userData.token,
+          };
+
+          set({ user, isLoading: false, error: null });
+          return { success: true, user };
+        } catch (err: any) {
+          const errorMessage =
+            err.response?.data?.message || err.message || "Registration failed";
+          set({ error: errorMessage, isLoading: false });
           return { success: false, error: errorMessage };
         }
       },

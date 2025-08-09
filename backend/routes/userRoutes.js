@@ -5,11 +5,13 @@ import {
   allUser,
 } from "../controllers/userController.js";
 import { protect } from "../middlewares/authMiddleware.js";
+import { uploadSingleImage } from "../middlewares/uploadMiddleware.js";
 
 const router = express.Router();
 
 router.get("/", protect, allUser);
-router.route("/").post(registerUser);
+// Accept multipart form with optional image
+router.route("/").post(uploadSingleImage, registerUser);
 router.post("/login", loginUser);
 
 export default router;

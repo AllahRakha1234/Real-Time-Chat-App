@@ -14,7 +14,6 @@ const RegisterPage = () => {
     handleSubmit,
     formState: { errors },
     reset,
-    setValue,
     watch,
   } = useForm<SignupSchema>({
     resolver: zodResolver(signupSchema),
@@ -27,7 +26,7 @@ const RegisterPage = () => {
     },
   });
 
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { register, isLoading, error, clearError } = useAuthStore();
   const watchedImage = watch("image");
 
   const onSubmit = async (data: SignupSchema) => {
@@ -37,19 +36,30 @@ const RegisterPage = () => {
     console.log("Form data:", data);
     console.log("Image data:", data.image);
 
-    // try {
-    //   const result = await login(data);
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("email", data.email);
+      formData.append("password", data.password);
 
-    //   if (result.success && result.user) {
-    //     toast.success("Login successful!");
-    //     reset();
-    //   } else if (result.error) {
-    //     toast.error(result.error);
-    //   }
-    // } catch (error) {
-    //   console.error("Login error in component:", error);
-    //   toast.error("Login failed. Please try again.");
-    // }
+      // Only append image if it exists
+      if (data.image && data.image instanceof File) {
+        formData.append("pic", data.image);
+      }
+
+      const result = await register(formData);
+
+      if (result.success && result.user) {
+        toast.success("Signup successful!");
+        reset();
+      } else if (result.error) {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      console.error("Signup error in component:", error);
+      toast.error("Signup failed. Please try again.");
+    }
   };
 
   useEffect(() => {
@@ -154,7 +164,7 @@ const RegisterPage = () => {
               render={({ field, fieldState }) => (
                 <>
                   <Input
-                    label="Password"
+                    label="Confirm Password"
                     placeholder="Enter confirm password"
                     type="password"
                     value={field.value || ""}
@@ -218,7 +228,7 @@ const RegisterPage = () => {
             </div>
           )}
 
-          <Button type="submit" className="mt-6" size="lg" disabled={isLoading}>
+          <Button type="submit" className="mt-4" size="lg" disabled={isLoading}>
             {isLoading ? "Signing up..." : "Signup"}
           </Button>
         </form>

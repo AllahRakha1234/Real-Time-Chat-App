@@ -2,10 +2,11 @@ import express from "express";
 import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
 import generateToken from "../utils/generateToken.js";
+import { uploadBufferToCloudinary } from "../config/cloudinary.js";
 
 // USER REGISTERING CONTROLLER
 const registerUser = asyncHandler(async (req, res, next) => {
-  const { name, email, password, pic } = req.body;
+  const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
     res.status(400);
@@ -18,12 +19,28 @@ const registerUser = asyncHandler(async (req, res, next) => {
     throw new Error("User already Exists.");
   }
 
+  // Handle optional image upload
+  let picUrl = req.body.pic;
+  if (req.file && req.file.buffer) {
+    try {
+      const uploadResult = await uploadBufferToCloudinary(req.file.buffer, {
+        folder: "smart-talk/profile-images",
+        resource_type: "image",
+      });
+      picUrl = uploadResult.secure_url;
+    } catch (error) {
+      console.error("Cloudinary upload error:", error);
+      res.status(500);
+      throw new Error(`Image upload failed: ${error.message}`);
+    }
+  }
+
   // CREATING THE USER
   const user = await User.create({
     name,
     email,
     password,
-    pic,
+    pic: picUrl,
   });
 
   if (user) {

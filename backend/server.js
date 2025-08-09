@@ -1,14 +1,25 @@
 import express from "express";
 import colors from "colors";
 import dotenv from "dotenv";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import connectDB from "./config/conn.js";
 import userRoutes from "./routes/userRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import { notFound, errorHandler } from "./middlewares/errorMiddlewares.js";
 import { protect } from "./middlewares/authMiddleware.js";
 import cors from "cors"
+import { configureCloudinary } from "./config/cloudinary.js";
 
-dotenv.config();
+// Get current file directory for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: join(__dirname, '.env') });
+
+// Configure Cloudinary after environment variables are loaded
+configureCloudinary();
+
 connectDB();
 
 const app = express();
