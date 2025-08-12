@@ -6,7 +6,7 @@ import { useAuthStore } from "../store/auth.store";
 import { signupSchema, type SignupSchema } from "../lib/validations/auth";
 import { toast } from "sonner";
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const RegisterPage = () => {
   const {
@@ -26,6 +26,7 @@ const RegisterPage = () => {
     },
   });
 
+  const navigate = useNavigate();
   const { register, isLoading, error, clearError } = useAuthStore();
   const watchedImage = watch("image");
 
@@ -53,6 +54,7 @@ const RegisterPage = () => {
       if (result.success && result.user) {
         toast.success("Signup successful!");
         reset();
+        setTimeout(() => navigate("/"), 1000);
       } else if (result.error) {
         toast.error(result.error);
       }

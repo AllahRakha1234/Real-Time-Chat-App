@@ -1,9 +1,9 @@
 import { Outlet } from "react-router-dom";
-
+import Header from "@/components/Header";
 export default function RootLayout() {
   return (
-    <div>
-      <header>Header or Navbar</header>
+    <div className="layout-container">
+      <Header />
       <main>
         <Outlet />
       </main>

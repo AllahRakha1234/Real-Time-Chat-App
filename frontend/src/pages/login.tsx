@@ -6,7 +6,7 @@ import { useAuthStore } from "../store/auth.store";
 import { loginSchema, type LoginSchema } from "../lib/validations/auth";
 import { toast } from "sonner";
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const {
@@ -22,6 +22,7 @@ const LoginPage = () => {
     },
   });
 
+  const navigate = useNavigate();
   const { login, isLoading, error, clearError } = useAuthStore();
 
   const onSubmit = async (data: LoginSchema) => {
@@ -34,6 +35,7 @@ const LoginPage = () => {
       if (result.success && result.user) {
         toast.success("Login successful!");
         reset();
+        setTimeout(() => navigate("/chat"), 1000);
       } else if (result.error) {
         toast.error(result.error);
       }

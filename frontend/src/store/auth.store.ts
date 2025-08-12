@@ -42,11 +42,6 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          console.log(
-            "Making login request to:",
-            `${api.defaults.baseURL}/api/user/login`
-          );
-
           const response = await api.post("/api/user/login", {
             email,
             password,

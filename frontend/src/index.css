@@ -113,7 +113,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50 m-0 p-0;
+    @apply border-border outline-ring/50 m-0 p-0 overflow-x-hidden;
   }
   body {
     @apply bg-background text-foreground;
@@ -123,6 +123,13 @@
 
 .my-background {
   background-image: url("./assets/bg1.jpg");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.layout-container {
+  background-image: url("./assets/chat-bg.png");
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
