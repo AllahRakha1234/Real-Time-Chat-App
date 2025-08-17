@@ -18,6 +18,7 @@ interface LoginCredentials {
 
 interface AuthState {
   user: User | null;
+  searchResults: User[];
   isLoading: boolean;
   error: string | null;
 
@@ -27,6 +28,11 @@ interface AuthState {
   register: (
     credentials: FormData
   ) => Promise<{ success: boolean; user?: User; error?: string }>;
+  searchUser: (searchTerm: string) => Promise<{
+    success: boolean;
+    user?: User[];
+    error?: string;
+  }>;
   logout: () => void;
   clearError: () => void;
 }
@@ -35,6 +41,7 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
+      searchResults: [],
       isLoading: false,
       error: null,
 
@@ -109,6 +116,35 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, error: null });
       },
 
+      searchUser: async (searchTerm: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          const { data } = await api.get(`/api/user`, {
+            params: { search: searchTerm },
+          });
+
+          // Assume `data` is an array of user objects from backend
+          set({ searchResults: data, isLoading: false });
+
+          console.log("data:", data);
+
+          return { success: true, users: data };
+        } catch (error: any) {
+          console.error("Error while fetching Users:", error);
+          const errorMessage =
+            error.response?.data?.message ||
+            error.message ||
+            "Failed fetching Users";
+
+          set({
+            error: errorMessage,
+            isLoading: false,
+            searchResults: [],
+          });
+
+          return { success: false, error: errorMessage };
+        }
+      },
       clearError: () => {
         set({ error: null });
       },
