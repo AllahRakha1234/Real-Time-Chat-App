@@ -1,10 +1,20 @@
-import * as React from "react";
-import { cn } from "@/lib/utils"; // shadcn/ui provides this helper
+// src/components/ui/loader.tsx
+import Lottie from "lottie-react";
+import loaderAnimation from "@/assets/DoubleLoader.json";
 
-export function Loader({ className }: { className?: string }) {
+interface LoaderProps {
+  size?: number;
+}
+
+export const Loader = ({ size = 100 }: LoaderProps) => {
   return (
-    <div className={cn("flex items-center justify-center", className)}>
-      <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent"></div>
+    <div className="flex items-center justify-center">
+      <Lottie
+        animationData={loaderAnimation}
+        loop={true}
+        className="select-none pointer-events-none"
+        style={{ width: size, height: size }}
+      />
     </div>
   );
-}
+};

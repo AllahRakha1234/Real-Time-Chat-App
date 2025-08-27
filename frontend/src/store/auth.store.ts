@@ -35,6 +35,7 @@ interface AuthState {
   }>;
   logout: () => void;
   clearError: () => void;
+  clearSearchResults: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -117,7 +118,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       searchUser: async (searchTerm: string) => {
-        set({ isLoading: true, error: null });
+        set({ isLoading: true, error: null, searchResults: [] }); // Clear previous results
         try {
           const { data } = await api.get(`/api/user`, {
             params: { search: searchTerm },
@@ -147,6 +148,9 @@ export const useAuthStore = create<AuthState>()(
       },
       clearError: () => {
         set({ error: null });
+      },
+      clearSearchResults: () => {
+        set({ searchResults: [] });
       },
     }),
     {

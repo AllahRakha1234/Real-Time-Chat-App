@@ -32,7 +32,7 @@ interface SearchFormData {
 
 const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { searchUser, searchResults, isLoading, error, clearError } =
+  const { user, searchUser, searchResults, isLoading, error, clearError, clearSearchResults } =
     useAuthStore();
 
   const { control, watch, reset } = useForm<SearchFormData>({
@@ -47,36 +47,50 @@ const Header = () => {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (watchedSearchTerm && watchedSearchTerm.trim().length > 0) {
+        // Clear previous results and errors before starting new search
+        clearError();
+        clearSearchResults();
         searchUser(watchedSearchTerm.trim());
       } else {
-        // Clear results when search is empty
+        // Clear results and errors when search is empty
         clearError();
+        clearSearchResults();
       }
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [watchedSearchTerm, searchUser, clearError]);
+  }, [watchedSearchTerm, searchUser, clearError, clearSearchResults]);
 
   const handleSearchClose = () => {
     setIsSearchOpen(false);
     reset();
     clearError();
+    clearSearchResults();
   };
 
   return (
-    <header className="sticky top-0 z-50 w-screen border-b bg-white backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-around">
-        {/* Left: Search opens drawer */}
-        <Sheet open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+    <header className="sticky top-0 z-50 w-screen bg-white">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between">
+        {/* Left: Search with custom Sheet + Overlay */}
+        <Sheet modal={false} open={isSearchOpen} onOpenChange={setIsSearchOpen}>
           <SheetTrigger asChild>
-            <div className="relative w-64 sm:w-80">
+            <div className="relative">
               <Button variant="default" size="sm">
                 <Search className="h-4 w-4" />
                 Search User
               </Button>
             </div>
           </SheetTrigger>
-          <SheetContent side="left" className="p-5 w-96">
+
+          {/* Full-screen blur overlay */}
+          {isSearchOpen && (
+            <div
+              className="fixed inset-0 z-40 bg-black/10 backdrop-blur-sm"
+              onClick={handleSearchClose}
+            />
+          )}
+
+          <SheetContent side="left" className="z-50 p-5 w-96">
             <SheetTitle>Search User</SheetTitle>
             <SheetDescription className="mb-4">
               Find users to chat with
@@ -108,11 +122,9 @@ const Header = () => {
                 )}
               />
 
-              {/* Search Results */}
               {isLoading && (
                 <div className="text-center py-4">
-                  <Loader className="mx-auto" />
-                  <p className="text-slate-500 mt-2">Searching...</p>
+                  <Loader />
                 </div>
               )}
 
@@ -122,7 +134,6 @@ const Header = () => {
                 </div>
               )}
 
-              {/* Only show results when there's a search term and results exist */}
               {watchedSearchTerm &&
                 watchedSearchTerm.trim().length > 0 &&
                 searchResults.length > 0 && (
@@ -154,7 +165,6 @@ const Header = () => {
                   </div>
                 )}
 
-              {/* Show "No results" only when there's a search term and no results */}
               {watchedSearchTerm &&
                 watchedSearchTerm.trim().length > 0 &&
                 searchResults.length === 0 &&
@@ -164,7 +174,6 @@ const Header = () => {
                   </div>
                 )}
 
-              {/* Show initial state when no search term */}
               {!watchedSearchTerm || watchedSearchTerm.trim().length === 0 ? (
                 <div className="text-center py-8">
                   <Search className="h-12 w-12 text-slate-300 mx-auto mb-2" />
@@ -186,17 +195,15 @@ const Header = () => {
           </NavigationMenuList>
         </NavigationMenu>
 
-        {/* Right: Bell + User menu */}
+        {/* Right: Notifications + User menu */}
         <div className="flex items-center gap-2">
-          {/* <Button variant="ghost" size="icon" aria-label="Notifications">
-          </Button> */}
           <Bell className="h-5 w-5" />
 
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <div className="flex items-center gap-1 cursor-pointer bg-gray-200 px-2 py-1 rounded-lg">
+              <div className="flex items-center gap-1 cursor-pointer bg-gray-100 px-2 py-1 rounded-lg">
                 <Avatar className="h-6 w-6">
-                  <AvatarImage src="" alt="@user" />
+                  <AvatarImage src={user?.pic} alt="@user" />
                   <AvatarFallback>U</AvatarFallback>
                 </Avatar>
                 <ChevronDown className="h-4 w-4 text-slate-500" />
@@ -211,10 +218,10 @@ const Header = () => {
               <DropdownMenuItem className="text-red-600">Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
         </div>
       </div>
     </header>
   );
 };
+
 export default Header;
