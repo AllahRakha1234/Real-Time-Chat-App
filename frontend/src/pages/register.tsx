@@ -7,6 +7,7 @@ import { signupSchema, type SignupSchema } from "../lib/validations/auth";
 import { toast } from "sonner";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Loader } from "@/components/ui/loader";
 
 const RegisterPage = () => {
   const {
@@ -231,7 +232,14 @@ const RegisterPage = () => {
           )}
 
           <Button type="submit" className="mt-4" size="lg" disabled={isLoading}>
-            {isLoading ? "Signing up..." : "Signup"}
+            {isLoading ? (
+              <>
+                <Loader className="h-4 w-4 mr-2" />
+                Signing up...
+              </>
+            ) : (
+              "Signup"
+            )}
           </Button>
         </form>
         <div className="flex justify-center mt-2">

@@ -1,3 +1,4 @@
+import { Loader } from "@/components/ui/loader";
 import React from "react";
 
 const ChatPage = () => {

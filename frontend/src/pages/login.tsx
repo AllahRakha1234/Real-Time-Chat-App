@@ -7,6 +7,7 @@ import { loginSchema, type LoginSchema } from "../lib/validations/auth";
 import { toast } from "sonner";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Loader } from "@/components/ui/loader";
 
 const LoginPage = () => {
   const {
@@ -125,7 +126,14 @@ const LoginPage = () => {
           </div>
 
           <Button type="submit" className="mt-1" size="lg" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
+            {isLoading ? (
+              <>
+                <Loader className="h-4 w-4 mr-2" />
+                Logging in...
+              </>
+            ) : (
+              "Login"
+            )}
           </Button>
         </form>
         <div className="flex justify-center mt-2">
