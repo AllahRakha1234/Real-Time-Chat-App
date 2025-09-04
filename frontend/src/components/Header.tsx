@@ -25,6 +25,9 @@ import { useAuthStore } from "@/store/auth.store";
 import { useForm, Controller } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { Loader } from "@/components/ui/loader";
+import { useNavigate } from "react-router-dom";
+import PaginationSection from "./PaginationSection";
+import { toast } from "react-hot-toast"
 
 interface SearchFormData {
   searchTerm: string;
@@ -32,7 +35,9 @@ interface SearchFormData {
 
 const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { user, searchUser, searchResults, isLoading, error, clearError, clearSearchResults } =
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [limit, setLimit] = useState<number>(2)
+  const { user, searchUser, searchResults, logout, isLoading, error, clearError, clearSearchResults, totalCounts, hasNext } =
     useAuthStore();
 
   const { control, watch, reset } = useForm<SearchFormData>({
@@ -42,6 +47,7 @@ const Header = () => {
   });
 
   const watchedSearchTerm = watch("searchTerm");
+  const navigate = useNavigate();
 
   // Debounced search effect
   useEffect(() => {
@@ -50,7 +56,7 @@ const Header = () => {
         // Clear previous results and errors before starting new search
         clearError();
         clearSearchResults();
-        searchUser(watchedSearchTerm.trim());
+        searchUser(watchedSearchTerm.trim(), currentPage, limit);
       } else {
         // Clear results and errors when search is empty
         clearError();
@@ -59,7 +65,7 @@ const Header = () => {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [watchedSearchTerm, searchUser, clearError, clearSearchResults]);
+  }, [watchedSearchTerm, searchUser, clearError, clearSearchResults, currentPage]);
 
   const handleSearchClose = () => {
     setIsSearchOpen(false);
@@ -67,6 +73,16 @@ const Header = () => {
     clearError();
     clearSearchResults();
   };
+
+  const handleLogoutClick = () => {
+    logout();
+    toast.success("Logging out.");
+    navigate("/");
+  }
+
+  const handlePageChange = async (page: number) => {
+    setCurrentPage(page)
+  }
 
   return (
     <header className="sticky top-0 z-50 w-screen bg-white">
@@ -142,25 +158,35 @@ const Header = () => {
                     <div className="max-h-64 overflow-y-auto space-y-2">
                       {searchResults.map((user) => (
                         <div
-                          key={user.id}
-                          className="flex items-center gap-3 p-3 rounded-lg border hover:bg-slate-50 cursor-pointer"
+                          key={(user as any).id ?? (user as any)._id}
+                          className="flex items-center gap-3 p-3 rounded-xl border bg-white hover:bg-sky-50/60 transition-colors shadow-sm hover:shadow-md"
                         >
-                          <Avatar className="h-8 w-8">
+                          <Avatar className="h-10 w-10">
                             <AvatarImage src={user.pic} alt={user.name} />
                             <AvatarFallback>
                               {user.name.charAt(0)}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-slate-900 truncate">
+                            <p className="font-semibold text-slate-900 truncate">
                               {user.name}
                             </p>
                             <p className="text-sm text-slate-500 truncate">
                               {user.email}
                             </p>
                           </div>
+                          <Button size="sm" className="bg-sky-600 hover:bg-sky-700 text-white">Add</Button>
                         </div>
                       ))}
+                    </div>
+                    <div>
+                      <PaginationSection
+                        totalCounts={totalCounts}
+                        hasNext={hasNext}
+                        currentPage={currentPage}
+                        itemsPerPage={limit}
+                        handlePageChange={handlePageChange}
+                      />
                     </div>
                   </div>
                 )}
@@ -215,7 +241,7 @@ const Header = () => {
               <DropdownMenuItem>Profile</DropdownMenuItem>
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogoutClick} className="text-red-600">Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

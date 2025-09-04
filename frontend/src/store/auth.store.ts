@@ -19,6 +19,8 @@ interface LoginCredentials {
 interface AuthState {
   user: User | null;
   searchResults: User[];
+  totalCounts: number,
+  hasNext: boolean,
   isLoading: boolean;
   error: string | null;
 
@@ -28,9 +30,11 @@ interface AuthState {
   register: (
     credentials: FormData
   ) => Promise<{ success: boolean; user?: User; error?: string }>;
-  searchUser: (searchTerm: string) => Promise<{
+  searchUser: (searchTerm: string, page: number, limit: number) => Promise<{
     success: boolean;
     user?: User[];
+    totalCounts?: number,
+    hasNext?: boolean,
     error?: string;
   }>;
   logout: () => void;
@@ -43,6 +47,8 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       searchResults: [],
+      totalCounts: 0,
+      hasNext: false,
       isLoading: false,
       error: null,
 
@@ -117,19 +123,24 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, error: null });
       },
 
-      searchUser: async (searchTerm: string) => {
+      searchUser: async (searchTerm: string, page: number, limit: number) => {
         set({ isLoading: true, error: null, searchResults: [] }); // Clear previous results
         try {
-          const { data } = await api.get(`/api/user`, {
+          const response = await api.get(`/api/user?page=${page}&limit=${limit}`, {
             params: { search: searchTerm },
           });
 
-          // Assume `data` is an array of user objects from backend
-          set({ searchResults: data, isLoading: false });
+          // Extract data from the response structure
+          const { data: users, totalCounts, hasNext } = response.data;
 
-          console.log("data:", data);
+          set({
+            searchResults: users,
+            totalCounts,
+            hasNext,
+            isLoading: false
+          });
 
-          return { success: true, users: data };
+          return { success: true, users: users, totalCounts, hasNext };
         } catch (error: any) {
           console.error("Error while fetching Users:", error);
           const errorMessage =
@@ -141,6 +152,8 @@ export const useAuthStore = create<AuthState>()(
             error: errorMessage,
             isLoading: false,
             searchResults: [],
+            totalCounts: 0,
+            hasNext: false,
           });
 
           return { success: false, error: errorMessage };
@@ -150,7 +163,7 @@ export const useAuthStore = create<AuthState>()(
         set({ error: null });
       },
       clearSearchResults: () => {
-        set({ searchResults: [] });
+        set({ searchResults: [], totalCounts: 0, hasNext: false });
       },
     }),
     {

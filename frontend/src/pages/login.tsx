@@ -4,10 +4,9 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "../store/auth.store";
 import { loginSchema, type LoginSchema } from "../lib/validations/auth";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Loader } from "@/components/ui/loader";
 
 const LoginPage = () => {
   const {
@@ -34,16 +33,15 @@ const LoginPage = () => {
       const result = await login(data);
 
       if (result.success && result.user) {
-        toast.success("Login successful!");
-        reset();
-        setTimeout(() => navigate("/chat"), 1000);
-      } else if (result.error) {
-        toast.error(result.error);
+        toast.success("Welcome back!");
+        setTimeout(() => navigate("/chat"), 1500);
+      } else {
+        toast.error("Login failed");
       }
-    } catch (error) {
-      console.error("Login error in component:", error);
-      toast.error("Login failed. Please try again.");
+    } catch {
+      toast.error("Something went wrong");
     }
+
   };
 
   useEffect(() => {
@@ -128,7 +126,6 @@ const LoginPage = () => {
           <Button type="submit" className="mt-1" size="lg" disabled={isLoading}>
             {isLoading ? (
               <>
-                <Loader className="h-4 w-4 mr-2" />
                 Logging in...
               </>
             ) : (

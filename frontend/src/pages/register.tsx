@@ -4,7 +4,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "../store/auth.store";
 import { signupSchema, type SignupSchema } from "../lib/validations/auth";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader } from "@/components/ui/loader";
@@ -234,7 +234,6 @@ const RegisterPage = () => {
           <Button type="submit" className="mt-4" size="lg" disabled={isLoading}>
             {isLoading ? (
               <>
-                <Loader className="h-4 w-4 mr-2" />
                 Signing up...
               </>
             ) : (
