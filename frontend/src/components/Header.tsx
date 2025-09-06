@@ -36,7 +36,7 @@ interface SearchFormData {
 const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1)
-  const [limit, setLimit] = useState<number>(2)
+  const [limit, setLimit] = useState<number>(10)
   const { user, searchUser, searchResults, logout, isLoading, error, clearError, clearSearchResults, totalCounts, hasNext } =
     useAuthStore();
 
@@ -85,8 +85,8 @@ const Header = () => {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-screen bg-white">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between">
+    <header className="sticky top-2 z-50 w-[92vw] bg-white rounded-full mx-auto px-5">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between">
         {/* Left: Search with custom Sheet + Overlay */}
         <Sheet modal={false} open={isSearchOpen} onOpenChange={setIsSearchOpen}>
           <SheetTrigger asChild>
@@ -155,11 +155,11 @@ const Header = () => {
                 searchResults.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="font-medium text-slate-700">Results:</h3>
-                    <div className="max-h-64 overflow-y-auto space-y-2">
+                    <div className="max-h-[60vh] overflow-y-scroll space-y-2 custom-scrollbar">
                       {searchResults.map((user) => (
                         <div
                           key={(user as any).id ?? (user as any)._id}
-                          className="flex items-center gap-3 p-3 rounded-xl border bg-white hover:bg-sky-50/60 transition-colors shadow-sm hover:shadow-md"
+                          className="flex items-center gap-3 p-3 rounded-xl border border-primary bg-white hover:bg-sky-50/60 transition-colors shadow-sm hover:shadow-md"
                         >
                           <Avatar className="h-10 w-10">
                             <AvatarImage src={user.pic} alt={user.name} />
@@ -189,7 +189,18 @@ const Header = () => {
                       />
                     </div>
                   </div>
+
                 )}
+              {/* {!isLoading ?
+                <div>
+                  <PaginationSection
+                    totalCounts={totalCounts}
+                    hasNext={hasNext}
+                    currentPage={currentPage}
+                    itemsPerPage={limit}
+                    handlePageChange={handlePageChange}
+                  />
+                </div> : ""} */}
 
               {watchedSearchTerm &&
                 watchedSearchTerm.trim().length > 0 &&
@@ -235,13 +246,13 @@ const Header = () => {
                 <ChevronDown className="h-4 w-4 text-slate-500" />
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-42">
+            <DropdownMenuContent align="end" className="w-42 border border-gray-300">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">Profile</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">Settings</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogoutClick} className="text-red-600">Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogoutClick} className="text-red-600 cursor-pointer">Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

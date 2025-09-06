@@ -115,10 +115,10 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50 m-0 p-0 overflow-x-hidden;
+    @apply m-0 p-0;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-x-hidden;
     font-family: "Work Sans", sans-serif;
   }
 }
@@ -136,3 +136,27 @@
   background-size: cover;
   background-repeat: no-repeat;
 }
+
+/* Custom Scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--primary) transparent; /* Firefox */
+  padding-right: 4px; /* Adds space between content & scrollbar */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 1.5px; /* even thinner */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 2px; /* small margin at top/bottom */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--primary);
+  border-radius: 9999px;
+  border: 2px solid transparent; /* creates spacing effect */
+  background-clip: content-box;  /* ensures border creates space */
+}
+

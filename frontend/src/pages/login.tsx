@@ -33,8 +33,8 @@ const LoginPage = () => {
       const result = await login(data);
 
       if (result.success && result.user) {
+        navigate("/chat");
         toast.success("Welcome back!");
-        setTimeout(() => navigate("/chat"), 1500);
       } else {
         toast.error("Login failed");
       }
