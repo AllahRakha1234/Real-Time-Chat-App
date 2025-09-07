@@ -22,12 +22,23 @@ import {
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/auth.store";
+import { useChatStore } from "@/store/chat.store"
 import { useForm, Controller } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { Loader } from "@/components/ui/loader";
 import { useNavigate } from "react-router-dom";
 import PaginationSection from "./PaginationSection";
 import { toast } from "react-hot-toast"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import useDebounce from "@/hooks/useDebounce";
 
 interface SearchFormData {
   searchTerm: string;
@@ -36,9 +47,14 @@ interface SearchFormData {
 const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1)
-  const [limit, setLimit] = useState<number>(10)
+  const [limit, setLimit] = useState<number>(5)
+  const [addingUserId, setAddingUserId] = useState<string | null>(null);
+
   const { user, searchUser, searchResults, logout, isLoading, error, clearError, clearSearchResults, totalCounts, hasNext } =
     useAuthStore();
+
+  const { createOrAccessChat, getChatUserIds } = useChatStore();
+  const existingChatUserIds = new Set(getChatUserIds(user?.id ?? ""));
 
   const { control, watch, reset } = useForm<SearchFormData>({
     defaultValues: {
@@ -47,25 +63,21 @@ const Header = () => {
   });
 
   const watchedSearchTerm = watch("searchTerm");
+  const debouncedSearchTerm = useDebounce(watchedSearchTerm, 500);
   const navigate = useNavigate();
 
   // Debounced search effect
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (watchedSearchTerm && watchedSearchTerm.trim().length > 0) {
-        // Clear previous results and errors before starting new search
-        clearError();
-        clearSearchResults();
-        searchUser(watchedSearchTerm.trim(), currentPage, limit);
-      } else {
-        // Clear results and errors when search is empty
-        clearError();
-        clearSearchResults();
-      }
-    }, 500);
+    if (debouncedSearchTerm && debouncedSearchTerm.trim().length > 0) {
+      clearError();
+      clearSearchResults();
+      searchUser(debouncedSearchTerm.trim(), currentPage, limit);
+    } else {
+      clearError();
+      clearSearchResults();
+    }
+  }, [debouncedSearchTerm, searchUser, clearError, clearSearchResults, currentPage, limit]);
 
-    return () => clearTimeout(timeoutId);
-  }, [watchedSearchTerm, searchUser, clearError, clearSearchResults, currentPage]);
 
   const handleSearchClose = () => {
     setIsSearchOpen(false);
@@ -80,9 +92,33 @@ const Header = () => {
     navigate("/");
   }
 
-  const handlePageChange = async (page: number) => {
+  const handlePageChange = (page: number) => {
     setCurrentPage(page)
   }
+
+  const handlePageLimitChange = (pageLimit: number) => {
+    setLimit(pageLimit)
+  }
+
+  const handleAddUserInChat = async (userId: string) => {
+    try {
+      setAddingUserId(userId); // show loader on button
+      const result = await createOrAccessChat(userId);
+
+      if (result.success && result.chat) {
+        toast.success("User added to chat 🚀");
+        // No need to update local state here
+        // chat.store should handle merging the new chat into state
+      } else {
+        toast.error(result.error || "Failed to add user");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong");
+    } finally {
+      setAddingUserId(null);
+    }
+  };
 
   return (
     <header className="sticky top-2 z-50 w-[92vw] bg-white rounded-full mx-auto px-5">
@@ -158,25 +194,38 @@ const Header = () => {
                     <div className="max-h-[60vh] overflow-y-scroll space-y-2 custom-scrollbar">
                       {searchResults.map((user) => (
                         <div
-                          key={(user as any).id ?? (user as any)._id}
-                          className="flex items-center gap-3 p-3 rounded-xl border border-primary bg-white hover:bg-sky-50/60 transition-colors shadow-sm hover:shadow-md"
+                          key={user.id}
+                          className={`flex items-center gap-3 p-3 rounded-xl border transition-colors shadow-sm ${existingChatUserIds.has(user.id)
+                            ? "bg-green-50 border-green-300"
+                            : "border-primary bg-white hover:bg-sky-50/60 hover:shadow-md"
+                            }`}
                         >
                           <Avatar className="h-10 w-10">
                             <AvatarImage src={user.pic} alt={user.name} />
-                            <AvatarFallback>
-                              {user.name.charAt(0)}
-                            </AvatarFallback>
+                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-slate-900 truncate">
-                              {user.name}
-                            </p>
-                            <p className="text-sm text-slate-500 truncate">
-                              {user.email}
-                            </p>
+                            <p className="font-semibold text-slate-900 truncate">{user.name}</p>
+                            <p className="text-sm text-slate-500 truncate">{user.email}</p>
                           </div>
-                          <Button size="sm" className="bg-sky-600 hover:bg-sky-700 text-white">Add</Button>
+
+                          <Button
+                            size="sm"
+                            className="bg-sky-600 hover:bg-sky-700 text-white disabled:opacity-60"
+                            disabled={existingChatUserIds.has(user.id) || addingUserId === user.id}
+                            onClick={() => handleAddUserInChat(user.id)}
+                          >
+                            {addingUserId === user.id ? (
+                              <Loader size={80} />
+                            ) : existingChatUserIds.has(user.id) ? (
+                              "In Chat"
+                            ) : (
+                              "Add"
+                            )}
+                          </Button>
+
                         </div>
+
                       ))}
                     </div>
                     <div>
@@ -188,19 +237,29 @@ const Header = () => {
                         handlePageChange={handlePageChange}
                       />
                     </div>
+                    <div className="flex justify-center items-center">
+                      <Select
+                        onValueChange={(value) => handlePageLimitChange(Number(value))}
+                        defaultValue={String(limit) || "5"}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Select Page Limit" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Page Limit</SelectLabel>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                            <SelectItem value="30">30</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                 )}
-              {/* {!isLoading ?
-                <div>
-                  <PaginationSection
-                    totalCounts={totalCounts}
-                    hasNext={hasNext}
-                    currentPage={currentPage}
-                    itemsPerPage={limit}
-                    handlePageChange={handlePageChange}
-                  />
-                </div> : ""} */}
 
               {watchedSearchTerm &&
                 watchedSearchTerm.trim().length > 0 &&
