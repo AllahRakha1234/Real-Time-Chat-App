@@ -86,23 +86,47 @@ const loginUser = asyncHandler(async (req, res, next) => {
 
 // SEARCH/GET ALL USER CONTROLLER (GET /api/user?search=)
 const allUser = asyncHandler(async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;       // default: page 1
+  const limit = parseInt(req.query.limit) || 10;    // default: 10 per page
+  const skip = (page - 1) * limit;
+
   const keyword = req.query.search
     ? {
-        $or: [
-          { name: { $regex: req.query.search, $options: "i" } },
-          { email: { $regex: req.query.search, $options: "i" } },
-        ],
-      }
+      $or: [
+        { name: { $regex: req.query.search, $options: "i" } },
+        { email: { $regex: req.query.search, $options: "i" } },
+      ],
+    }
     : {};
 
-  const users = await User.find(keyword).find({ _id: { $ne: req.user._id } });
-  if (users) {
-    res.status(200);
-    res.send(users);
-  } else {
-    res.status(400);
-    next(new Error("No User Found."));
-  }
+  // Exclude current user
+  const filter = { ...keyword, _id: { $ne: req.user._id } };
+
+  const totalCounts = await User.countDocuments(filter);
+  const hasNext = page * limit < totalCounts;
+
+  // Fetch users, lean gives plain objects (not Mongoose docs)
+  const users = await User.find(filter)
+    .skip(skip)
+    .limit(limit)
+    .select({ _id: 1, name: 1, email: 1, isAdmin: 1, pic: 1 })
+    .lean();
+
+  // Convert _id → id
+  const formattedUsers = users.map(({ _id, ...rest }) => ({
+    id: _id,
+    ...rest,
+  }));
+
+  res.status(200).json({
+    data: formattedUsers,
+    totalCounts,
+    page,
+    limit,
+    hasNext,
+  });
 });
+
+
 
 export { registerUser, loginUser, allUser };

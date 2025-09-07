@@ -1,7 +1,6 @@
 import asyncHandler from "express-async-handler";
 import Chat from "../models/chatModel.js";
 import User from "../models/userModel.js";
-import mongoose from "mongoose";
 
 // ACCESSING/CREATING CHAT (1-TO-1)
 const accessChat = asyncHandler(async (req, res) => {
@@ -138,35 +137,35 @@ const renameGroup = asyncHandler(async (req, res) => {
 });
 
 // ADD TO GROUP
-const addToGroup = asyncHandler(async (req, res)=>{
-  const {chatId, userId} = req.body
-  if(!chatId || !userId){
-    return res.status(400).send({message: "Chat ID and User ID are required"})
+const addToGroup = asyncHandler(async (req, res) => {
+  const { chatId, userId } = req.body
+  if (!chatId || !userId) {
+    return res.status(400).send({ message: "Chat ID and User ID are required" })
   }
 
   const added = await Chat.findByIdAndUpdate(chatId, {
-    $push: {users: userId}
-  }, {new: true}).populate("users", "-password").populate("groupAdmin", "-password")
+    $push: { users: userId }
+  }, { new: true }).populate("users", "-password").populate("groupAdmin", "-password")
 
-  if(!added){
-    return res.status(400).send({message: "Failed to add user to group"})
+  if (!added) {
+    return res.status(400).send({ message: "Failed to add user to group" })
   }
   res.status(200).json(added)
 })
 
 // REMOVE FROM GROUP
-const removeFromGroup = asyncHandler(async (req, res)=>{
-  const {chatId, userId} = req.body
-  if(!chatId || !userId){
-    return res.status(400).send({message: "Chat ID and User ID are required"})
+const removeFromGroup = asyncHandler(async (req, res) => {
+  const { chatId, userId } = req.body
+  if (!chatId || !userId) {
+    return res.status(400).send({ message: "Chat ID and User ID are required" })
   }
 
   const removed = await Chat.findByIdAndUpdate(chatId, {
-    $pull: {users: userId}
-  }, {new: true}).populate("users", "-password").populate("groupAdmin", "-password")
+    $pull: { users: userId }
+  }, { new: true }).populate("users", "-password").populate("groupAdmin", "-password")
 
-  if(!removed){
-    return res.status(400).send({message: "Failed to remove user from group"})
+  if (!removed) {
+    return res.status(400).send({ message: "Failed to remove user from group" })
   }
   res.status(200).json(removed)
 })
