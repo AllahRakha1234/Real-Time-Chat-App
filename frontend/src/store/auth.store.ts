@@ -1,20 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { api } from "../lib/axios"; // ⬅️ Axios instance
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  isAdmin?: boolean;
-  pic?: string;
-  token?: string;
-}
-
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
+import { api } from "../lib/axios"; // Axios instance
+import type { User, LoginCredentials } from "@/types/auth"
 
 interface AuthState {
   user: User | null;
@@ -56,25 +43,13 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const response = await api.post("/api/user/login", {
+          const { data } = await api.post("/api/user/login", {
             email,
             password,
           });
 
-          const userData = response.data;
-
-          // Transform the backend response to match our User interface
-          const user: User = {
-            id: userData._id,
-            name: userData.name,
-            email: userData.email,
-            isAdmin: userData.isAdmin,
-            pic: userData.pic,
-            token: userData.token,
-          };
-
-          set({ user, isLoading: false, error: null });
-          return { success: true, user };
+          set({ user: data, isLoading: false, error: null });
+          return { success: true, user: data };
         } catch (err: any) {
           console.error("Login error:", err);
           const errorMessage =
@@ -92,25 +67,14 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const response = await api.post("/api/user", formData, {
+          const { data } = await api.post("/api/user", formData, {
             headers: {
               "Content-Type": "multipart/form-data",
             },
           });
 
-          const userData = response.data;
-
-          const user: User = {
-            id: userData._id,
-            name: userData.name,
-            email: userData.email,
-            isAdmin: userData.isAdmin,
-            pic: userData.pic,
-            token: userData.token,
-          };
-
-          set({ user, isLoading: false, error: null });
-          return { success: true, user };
+          set({ user: data, isLoading: false, error: null });
+          return { success: true, data };
         } catch (err: any) {
           const errorMessage =
             err.response?.data?.message || err.message || "Registration failed";

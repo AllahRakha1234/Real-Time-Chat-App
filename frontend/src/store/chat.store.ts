@@ -1,28 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { api } from "../lib/axios";
-
-export interface ChatUser {
-    _id: string;
-    name: string;
-    email: string;
-    pic: string; // matches backend
-    isAdmin: boolean;
-}
-
-export interface Chat {
-    _id: string;
-    chatName: string; // matches backend
-    isGroupChat: boolean;
-    users: ChatUser[];
-    createdAt: string;
-    updatedAt: string;
-    lastMessage?: {
-        sender: string;
-        content: string;
-        createdAt: string;
-    };
-}
+import type { Chat } from "@/types/chat";
 
 export interface ChatState {
     chats: Chat[];

@@ -54,7 +54,7 @@ const Header = () => {
     useAuthStore();
 
   const { createOrAccessChat, getChatUserIds } = useChatStore();
-  const existingChatUserIds = new Set(getChatUserIds(user?.id ?? ""));
+  const existingChatUserIds = new Set(getChatUserIds(user?._id ?? ""));
 
   const { control, watch, reset } = useForm<SearchFormData>({
     defaultValues: {
@@ -122,9 +122,16 @@ const Header = () => {
 
   return (
     <header className="sticky top-2 z-50 w-[92vw] bg-white rounded-full mx-auto px-5">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between">
+      <div className="mx-auto flex h-[8vh] max-w-7xl items-center justify-between">
         {/* Left: Search with custom Sheet + Overlay */}
-        <Sheet modal={false} open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+        <Sheet
+          modal={false}
+          open={isSearchOpen}
+          onOpenChange={(open) => {
+            if (!open) handleSearchClose(); // centralize close logic
+            else setIsSearchOpen(true);
+          }}
+        >
           <SheetTrigger asChild>
             <div className="relative">
               <Button variant="default" size="sm">
@@ -190,12 +197,12 @@ const Header = () => {
                 watchedSearchTerm.trim().length > 0 &&
                 searchResults.length > 0 && (
                   <div className="space-y-2">
-                    <h3 className="font-medium text-slate-700">Results:</h3>
+                    <h3 className="font-medium text-primary-foreground/90">Results:</h3>
                     <div className="max-h-[60vh] overflow-y-scroll space-y-2 custom-scrollbar">
                       {searchResults.map((user) => (
                         <div
-                          key={user.id}
-                          className={`flex items-center gap-3 p-3 rounded-xl border transition-colors shadow-sm ${existingChatUserIds.has(user.id)
+                          key={user._id}
+                          className={`flex items-center gap-3 p-3 rounded-xl border transition-colors shadow-sm ${existingChatUserIds.has(user._id)
                             ? "bg-green-50 border-green-300"
                             : "border-primary bg-white hover:bg-sky-50/60 hover:shadow-md"
                             }`}
@@ -211,13 +218,13 @@ const Header = () => {
 
                           <Button
                             size="sm"
-                            className="bg-sky-600 hover:bg-sky-700 text-white disabled:opacity-60"
-                            disabled={existingChatUserIds.has(user.id) || addingUserId === user.id}
-                            onClick={() => handleAddUserInChat(user.id)}
+                            className="text-secondary-foreground disabled:opacity-60"
+                            disabled={existingChatUserIds.has(user._id) || addingUserId === user._id}
+                            onClick={() => handleAddUserInChat(user._id)}
                           >
-                            {addingUserId === user.id ? (
+                            {addingUserId === user._id ? (
                               <Loader size={80} />
-                            ) : existingChatUserIds.has(user.id) ? (
+                            ) : existingChatUserIds.has(user._id) ? (
                               "In Chat"
                             ) : (
                               "Add"

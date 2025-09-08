@@ -85,7 +85,7 @@ const PaginationSection = ({
                                 href="#"
                                 className={
                                     page === currentPage
-                                        ? "bg-primary text-white hover:bg-primary/90"
+                                        ? "bg-primary text-secondary-foreground hover:bg-primary/90"
                                         : ""
                                 }
                                 onClick={(e) => {
