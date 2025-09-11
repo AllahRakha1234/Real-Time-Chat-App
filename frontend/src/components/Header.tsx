@@ -29,16 +29,8 @@ import { Loader } from "@/components/ui/loader";
 import { useNavigate } from "react-router-dom";
 import PaginationSection from "./PaginationSection";
 import { toast } from "react-hot-toast"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import useDebounce from "@/hooks/useDebounce";
+import SearchResultItem from "./common/SearchUserItem";
 
 interface SearchFormData {
   searchTerm: string;
@@ -107,8 +99,6 @@ const Header = () => {
 
       if (result.success && result.chat) {
         toast.success("User added to chat 🚀");
-        // No need to update local state here
-        // chat.store should handle merging the new chat into state
       } else {
         toast.error(result.error || "Failed to add user");
       }
@@ -200,72 +190,27 @@ const Header = () => {
                     <h3 className="font-medium text-primary-foreground/90">Results:</h3>
                     <div className="max-h-[60vh] overflow-y-scroll space-y-2 custom-scrollbar">
                       {searchResults.map((user) => (
-                        <div
+                        <SearchResultItem
                           key={user._id}
-                          className={`flex items-center gap-3 p-3 rounded-xl border transition-colors shadow-sm ${existingChatUserIds.has(user._id)
-                            ? "bg-green-50 border-green-300"
-                            : "border-primary bg-white hover:bg-sky-50/60 hover:shadow-md"
-                            }`}
-                        >
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={user.pic} alt={user.name} />
-                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-slate-900 truncate">{user.name}</p>
-                            <p className="text-sm text-slate-500 truncate">{user.email}</p>
-                          </div>
-
-                          <Button
-                            size="sm"
-                            className="text-secondary-foreground disabled:opacity-60"
-                            disabled={existingChatUserIds.has(user._id) || addingUserId === user._id}
-                            onClick={() => handleAddUserInChat(user._id)}
-                          >
-                            {addingUserId === user._id ? (
-                              <Loader size={80} />
-                            ) : existingChatUserIds.has(user._id) ? (
-                              "In Chat"
-                            ) : (
-                              "Add"
-                            )}
-                          </Button>
-
-                        </div>
-
+                          user={user}
+                          isInChat={existingChatUserIds.has(user._id)}
+                          isAdding={addingUserId === user._id}
+                          onAddUser={handleAddUserInChat}
+                        />
                       ))}
                     </div>
-                    <div>
+                    <div className="mt-3">
                       <PaginationSection
                         totalCounts={totalCounts}
                         hasNext={hasNext}
                         currentPage={currentPage}
                         itemsPerPage={limit}
+                        showLimitRangeSelect={true}
                         handlePageChange={handlePageChange}
+                        handlePageLimitChange={handlePageLimitChange}
                       />
                     </div>
-                    <div className="flex justify-center items-center">
-                      <Select
-                        onValueChange={(value) => handlePageLimitChange(Number(value))}
-                        defaultValue={String(limit) || "5"}
-                      >
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Select Page Limit" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>Page Limit</SelectLabel>
-                            <SelectItem value="5">5</SelectItem>
-                            <SelectItem value="10">10</SelectItem>
-                            <SelectItem value="20">20</SelectItem>
-                            <SelectItem value="30">30</SelectItem>
-                            <SelectItem value="50">50</SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
                   </div>
-
                 )}
 
               {watchedSearchTerm &&
@@ -301,7 +246,6 @@ const Header = () => {
         {/* Right: Notifications + User menu */}
         <div className="flex items-center gap-2">
           <Bell className="h-5 w-5" />
-
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-1 cursor-pointer bg-gray-100 px-2 py-1 rounded-lg">

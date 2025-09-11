@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import type { Chat } from "@/types/chat";
 import { getReceiverUserName } from "@/utils/chat";
 import { useAuthStore } from "@/store/auth.store";
@@ -13,6 +13,11 @@ interface ChatUserProps {
 
 const ChatUser: React.FC<ChatUserProps> = ({ chats, isLoading, error }) => {
     const { user: loggedUser } = useAuthStore();
+    const [selectedChat, setSelectedChat] = useState("")
+
+    const handleChatClick = (chatId: string) => {
+        setSelectedChat(chatId)
+    }
 
     // Loading state
     if (isLoading) {
@@ -37,7 +42,7 @@ const ChatUser: React.FC<ChatUserProps> = ({ chats, isLoading, error }) => {
         return (
             <div className="flex flex-col items-center justify-center h-full space-y-4">
                 <MessageSquareText className="text-gray-400" size={80} />
-                <p className="text-lg text-gray-500">No chats available</p>
+                <p className="text-lg text-gray-400">No chats available</p>
             </div>
         );
     }
@@ -47,9 +52,10 @@ const ChatUser: React.FC<ChatUserProps> = ({ chats, isLoading, error }) => {
             {chats.map((chat) => (
                 <div
                     key={chat._id}
-                    className="p-3 bg-gray-50 hover:bg-gray-100 rounded-md cursor-pointer transition-colors"
+                    className={`p-3 rounded-md cursor-pointer ${selectedChat == chat._id ? "text-secondary-foreground bg-primary" : "bg-secondary/40 hover:bg-secondary/60"}`}
+                    onClick={() => handleChatClick(chat._id)}
                 >
-                    <p className="text-sm font-medium text-gray-800">
+                    <p className="text-md font-semibold">
                         {loggedUser ? getReceiverUserName(loggedUser, chat.users) : ""}
                     </p>
                 </div>

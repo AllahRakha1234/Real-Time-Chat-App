@@ -9,11 +9,12 @@ export interface ChatState {
     isLoading: boolean;
     error: string | null;
 
-    setChats: (chats: Chat[]) => void;
     createOrAccessChat: (
         userId: string
     ) => Promise<{ success: boolean; chat?: Chat; error?: string }>;
     fetchChats: () => Promise<{ success: boolean; chats?: Chat[]; error?: string }>
+    createGroupChat: (groupName: string, usersIds: string[]) => Promise<{ success: boolean; chat?: Chat; error?: string }>
+    setChats: (chats: Chat[]) => void;
     getChatUserIds: (currentUserId: string) => string[];
     updateChat: (chatId: string, updatedChat: Partial<Chat>) => void;
     removeChat: (chatId: string) => void;
@@ -70,6 +71,34 @@ export const useChatStore = create<ChatState>()(
                         chats: [], // fallback to empty array
                     });
 
+                    return { success: false, error: errorMessage };
+                }
+            },
+            createGroupChat: async (groupName: string, usersIds: string[]) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const { data } = await api.post("/api/chat/group", {
+                        name: groupName,
+                        users: usersIds
+                    });
+                    set((state) => {
+                        const exists = state.chats.some((c) => c._id === data._id);
+                        return {
+                            chats: exists ? state.chats : [data, ...state.chats],
+                            isLoading: false,
+                            error: null,
+                        };
+                    });
+                    return { success: true, chat: data };
+                } catch (err: any) {
+                    console.error("Group creation Error:", err);
+                    const errorMessage =
+                        err.response?.data?.message || err.message || "Group creation failed";
+                    set({
+                        error: errorMessage,
+                        isLoading: false,
+                        selectedChat: null,
+                    });
                     return { success: false, error: errorMessage };
                 }
             },
