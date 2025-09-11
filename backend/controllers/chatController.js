@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Chat from "../models/chatModel.js";
 import User from "../models/userModel.js";
+import { getOrSetCache } from "../utils/cache.js";
 
 // ACCESSING/CREATING CHAT (1-TO-1)
 const accessChat = asyncHandler(async (req, res) => {
@@ -50,18 +51,23 @@ const accessChat = asyncHandler(async (req, res) => {
 
 // FETCH CHATS
 const fetchChats = asyncHandler(async (req, res) => {
-  try {
-    const chats = await Chat.find({
-      users: { $elemMatch: { $eq: req.user._id } },
-    })
-      .populate("users", "-password")
-      .populate("groupAdmin", "-password")
-      .populate("latestMessage")
-      .sort({ updatedAt: -1 });
+  const userId = req.user._id.toString();
 
-    const fullChats = await User.populate(chats, {
-      path: "latestMessage.sender",
-      select: "name pic email",
+  try {
+    // Wrap the DB query inside getOrSetCache
+    const fullChats = await getOrSetCache(`user:${userId}:chats`, async () => {
+      const chats = await Chat.find({
+        users: { $elemMatch: { $eq: req.user._id } },
+      })
+        .populate("users", "-password")
+        .populate("groupAdmin", "-password")
+        .populate("latestMessage")
+        .sort({ updatedAt: -1 });
+
+      return await User.populate(chats, {
+        path: "latestMessage.sender",
+        select: "name pic email",
+      });
     });
 
     return res.status(200).send(fullChats);
@@ -78,7 +84,7 @@ const createGroupChat = asyncHandler(async (req, res) => {
 
   let users;
   try {
-    users = JSON.parse(req.body.users);
+    users = req.body.users;
   } catch (err) {
     return res.status(400).send({ message: "Invalid users format" });
   }

@@ -112,14 +112,8 @@ const allUser = asyncHandler(async (req, res, next) => {
     .select({ _id: 1, name: 1, email: 1, isAdmin: 1, pic: 1 })
     .lean();
 
-  // Convert _id → id
-  const formattedUsers = users.map(({ _id, ...rest }) => ({
-    id: _id,
-    ...rest,
-  }));
-
   res.status(200).json({
-    data: formattedUsers,
+    data: users,
     totalCounts,
     page,
     limit,

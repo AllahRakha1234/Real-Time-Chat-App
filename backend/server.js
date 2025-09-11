@@ -10,6 +10,7 @@ import { notFound, errorHandler } from "./middlewares/errorMiddlewares.js";
 import { protect } from "./middlewares/authMiddleware.js";
 import cors from "cors";
 import { configureCloudinary } from "./config/cloudinary.js";
+import morgan from "morgan";
 
 // Get current file directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -24,6 +25,9 @@ connectDB();
 
 const app = express();
 const port = process.env.PORT || 5000;
+
+// Logging
+app.use(morgan("dev"));
 
 app.use(express.json()); // To accept the json data
 
