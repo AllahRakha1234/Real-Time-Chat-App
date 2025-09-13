@@ -7,7 +7,8 @@ export async function getOrSetCache(key, cb, expiry = DEFAULT_EXPIRY) {
         const cachedData = await redisClient.get(key);
         if (cachedData) {
             console.log(`Cache hit ✅ for key: ${key}`);
-            return JSON.parse(cachedData);
+            const parsed = JSON.parse(cachedData);
+            return Array.isArray(parsed) ? parsed : [];  // 👈 force array
         }
 
         console.log(`Cache miss ❌ for key: ${key}`);
@@ -17,10 +18,10 @@ export async function getOrSetCache(key, cb, expiry = DEFAULT_EXPIRY) {
             await redisClient.setEx(key, expiry, JSON.stringify(freshData));
         }
 
-        return freshData;
+        return Array.isArray(freshData) ? freshData : [];
     } catch (err) {
         console.error("Redis cache error:", err);
-        return cb(); // fallback to DB if Redis fails
+        return cb(); // fallback to DB
     }
 }
 
