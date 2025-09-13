@@ -1,65 +1,63 @@
-import React, { useState } from "react";
+import React from "react";
 import type { Chat } from "@/types/chat";
-import { getReceiverUserName } from "@/utils/chat";
+import { getReceiverUser } from "@/utils/chat";
 import { useAuthStore } from "@/store/auth.store";
 import { MessageSquareText } from "lucide-react";
-import { Loader } from "@/components/ui/loader"
+import ChatAvatar from "@/components/Chat/ChatAvatar";
 
 interface ChatUserProps {
     chats: Chat[];
-    isLoading: boolean;
-    error?: string | null;
+    selectedChat: Chat | null;
+    onSelectChat: (chat: Chat) => void;
 }
 
-const ChatUser: React.FC<ChatUserProps> = ({ chats, isLoading, error }) => {
+const ChatUser: React.FC<ChatUserProps> = ({
+    chats,
+    selectedChat,
+    onSelectChat,
+}) => {
     const { user: loggedUser } = useAuthStore();
-    const [selectedChat, setSelectedChat] = useState("")
 
-    const handleChatClick = (chatId: string) => {
-        setSelectedChat(chatId)
-    }
-
-    // Loading state
-    if (isLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center h-full">
-                <Loader size={100} />
-            </div>
-        );
-    }
-
-    // Error state
-    if (error) {
-        return (
-            <div className="flex flex-col items-center justify-center h-full space-y-2">
-                <p className="text-red-500">{error}</p>
-            </div>
-        );
-    }
-
-    // Empty state
     if (!chats || chats.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center h-full space-y-4">
+                <p className="text-xl text-gray-500">No chats available</p>
                 <MessageSquareText className="text-gray-400" size={80} />
-                <p className="text-lg text-gray-400">No chats available</p>
             </div>
         );
     }
-    // Chats list
+
     return (
-        <div className="space-y-2">
-            {chats.map((chat) => (
-                <div
-                    key={chat._id}
-                    className={`p-3 rounded-md cursor-pointer ${selectedChat == chat._id ? "text-secondary-foreground bg-primary" : "bg-secondary/40 hover:bg-secondary/60"}`}
-                    onClick={() => handleChatClick(chat._id)}
-                >
-                    <p className="text-md font-semibold">
-                        {loggedUser ? getReceiverUserName(loggedUser, chat.users) : ""}
-                    </p>
-                </div>
-            ))}
+        <div className="space-y-2 p-3">
+            {chats.map((chat) => {
+                const isSelected = selectedChat?._id === chat._id;
+
+                // Decide which name to show
+                const receiverUser =
+                    loggedUser && !chat.isGroupChat
+                        ? getReceiverUser(loggedUser, chat.users)
+                        : null;
+
+                const displayName = chat.isGroupChat
+                    ? chat.chatName
+                    : receiverUser?.name;
+
+                return (
+                    <div
+                        key={chat._id}
+                        className={`flex items-center space-x-3 p-3 rounded-md cursor-pointer ${isSelected
+                            ? "text-secondary-foreground bg-primary"
+                            : "bg-secondary/40 hover:bg-secondary/60"
+                            }`}
+                        onClick={() => onSelectChat(chat)}
+                    >
+                        {/* Reusable Avatar */}
+                        <ChatAvatar isSelected={isSelected} chat={chat} loggedUser={loggedUser} />
+
+                        <p className="text-md font-medium">{displayName}</p>
+                    </div>
+                );
+            })}
         </div>
     );
 };

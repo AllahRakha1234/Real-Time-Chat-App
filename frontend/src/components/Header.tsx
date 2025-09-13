@@ -12,7 +12,7 @@ import {
 } from "../components/ui/dropdown-menu";
 import { Button } from "../components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Bell, ChevronDown, Search } from "lucide-react";
+import { Bell, ChevronDown, Search, User } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -23,7 +23,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/auth.store";
 import { useChatStore } from "@/store/chat.store"
-import { useForm, Controller } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { Loader } from "@/components/ui/loader";
 import { useNavigate } from "react-router-dom";
@@ -32,9 +31,6 @@ import { toast } from "react-hot-toast"
 import useDebounce from "@/hooks/useDebounce";
 import SearchResultItem from "./common/SearchUserItem";
 
-interface SearchFormData {
-  searchTerm: string;
-}
 
 const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -42,23 +38,19 @@ const Header = () => {
   const [limit, setLimit] = useState<number>(5)
   const [addingUserId, setAddingUserId] = useState<string | null>(null);
 
+  // NEW: useState for searchTerm instead of useForm Controller
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
   const { user, searchUser, searchResults, logout, isLoading, error, clearError, clearSearchResults, totalCounts, hasNext } =
     useAuthStore();
 
   const { createOrAccessChat, getChatUserIds } = useChatStore();
   const existingChatUserIds = new Set(getChatUserIds(user?._id ?? ""));
 
-  const { control, watch, reset } = useForm<SearchFormData>({
-    defaultValues: {
-      searchTerm: "",
-    },
-  });
-
-  const watchedSearchTerm = watch("searchTerm");
-  const debouncedSearchTerm = useDebounce(watchedSearchTerm, 500);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const navigate = useNavigate();
 
-  // Debounced search effect
+  // Debounced search effect (same behavior as before)
   useEffect(() => {
     if (debouncedSearchTerm && debouncedSearchTerm.trim().length > 0) {
       clearError();
@@ -73,7 +65,7 @@ const Header = () => {
 
   const handleSearchClose = () => {
     setIsSearchOpen(false);
-    reset();
+    setSearchTerm(""); // resets search input (used to be reset())
     clearError();
     clearSearchResults();
   };
@@ -146,45 +138,33 @@ const Header = () => {
             </SheetDescription>
 
             <div className="space-y-4">
-              <Controller
-                name="searchTerm"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <div className="space-y-2">
-                    <div className="relative">
-                      <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                      <Input
-                        placeholder="Search User"
-                        className="pl-8"
-                        value={field.value || ""}
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        name={field.name}
-                      />
-                    </div>
-                    {fieldState.error && (
-                      <p className="text-red-500 text-sm ml-1">
-                        {fieldState.error.message}
-                      </p>
-                    )}
-                  </div>
-                )}
-              />
+              {/* Replaced Controller with controlled Input using useState */}
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    placeholder="Search User"
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
+                  />
+                </div>
+              </div>
 
               {isLoading && (
-                <div className="text-center py-4">
+                <div className="mt-[30vh] text-center py-4">
                   <Loader />
                 </div>
               )}
 
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <div className="bg-red-50 mt-[30vh] border border-red-200 rounded-md p-3">
                   <p className="text-red-500 text-sm text-center">{error}</p>
                 </div>
               )}
 
-              {watchedSearchTerm &&
-                watchedSearchTerm.trim().length > 0 &&
+              {searchTerm &&
+                searchTerm.trim().length > 0 &&
                 searchResults.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="font-medium text-primary-foreground/90">Results:</h3>
@@ -213,16 +193,17 @@ const Header = () => {
                   </div>
                 )}
 
-              {watchedSearchTerm &&
-                watchedSearchTerm.trim().length > 0 &&
+              {searchTerm &&
+                searchTerm.trim().length > 0 &&
                 searchResults.length === 0 &&
                 !isLoading && (
-                  <div className="text-center py-4">
-                    <p className="text-slate-500">No users found</p>
+                  <div className="flex flex-col items-center justify-center mt-[30vh] space-y-1 ">
+                    <User size={60} className="text-slate-400" />
+                    <p className="text-lg font-medium text-slate-500">No users found</p>
                   </div>
                 )}
 
-              {!watchedSearchTerm || watchedSearchTerm.trim().length === 0 ? (
+              {!searchTerm || searchTerm.trim().length === 0 ? (
                 <div className="text-center py-8">
                   <Search className="h-12 w-12 text-slate-300 mx-auto mb-2" />
                   <p className="text-slate-500">

@@ -82,11 +82,16 @@ export const useAuthStore = create<AuthState>()(
           return { success: false, error: errorMessage };
         }
       },
-
       logout: () => {
-        set({ user: null, error: null });
+        set({
+          user: null,
+          searchResults: [],
+          totalCounts: 0,
+          hasNext: false,
+          isLoading: false,
+          error: null,
+        });
       },
-
       searchUser: async (searchTerm: string, page: number, limit: number) => {
         set({ isLoading: true, error: null, searchResults: [] }); // Clear previous results
         try {

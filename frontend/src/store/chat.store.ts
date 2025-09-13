@@ -56,11 +56,16 @@ export const useChatStore = create<ChatState>()(
                 set({ isLoading: true, error: null });
                 try {
                     const { data } = await api.get("/api/chat");
+                    console.log("data:", data)
+
+                    // Ensure chats is always an array
+                    const chatArray = Array.isArray(data) ? data : data?.chats || [];
+
                     set({
-                        chats: data,
+                        chats: chatArray,
                         isLoading: false,
                     });
-                    return { success: true, chats: data };
+                    return { success: true, chats: chatArray };
                 } catch (err: any) {
                     console.error("Chat error:", err);
                     const errorMessage =
@@ -68,7 +73,7 @@ export const useChatStore = create<ChatState>()(
                     set({
                         error: errorMessage,
                         isLoading: false,
-                        chats: [], // fallback to empty array
+                        chats: [], // fallback
                     });
 
                     return { success: false, error: errorMessage };
@@ -103,10 +108,10 @@ export const useChatStore = create<ChatState>()(
                 }
             },
             getChatUserIds: (currentUserId) => {
-                const chats = get().chats;
+                const chats = Array.isArray(get().chats) ? get().chats : [];
                 return chats.flatMap((chat) =>
-                    chat.users
-                        .filter((u) => u._id !== currentUserId) // exclude yourself
+                    (chat.users || [])
+                        .filter((u) => u._id !== currentUserId)
                         .map((u) => u._id)
                 );
             },

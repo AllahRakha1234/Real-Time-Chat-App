@@ -71,6 +71,18 @@ const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose }) => {
         }
     }, [debouncedSearchTerm]);
 
+    // Reset modal state when closed
+    useEffect(() => {
+        if (!isOpen) {
+            reset(); // reset react-hook-form values + errors
+            setSelectedUsers([]);
+            setSearchTerm("");
+            clearError();
+            clearSearchResults();
+        }
+    }, [isOpen, reset, clearError, clearSearchResults]);
+
+
     const handleAddUser = (user: any) => {
         if (selectedUsers.some((u) => u._id === user._id)) {
             toast.error("User already added!");
@@ -142,14 +154,13 @@ const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose }) => {
                         {selectedUsers.map((user) => (
                             <span
                                 key={user._id}
-                                className="bg-primary/10 text-primary px-2 py-1 rounded-md text-sm flex items-center gap-1"
+                                className="px-3 py-1 bg-primary/20 text-primary-foreground rounded-md text-sm flex items-center gap-x-1"
                             >
                                 {user.name}
                                 <Button
-                                    type="button"
-                                    variant="ghost"
+                                    variant="simple"
                                     size="sm"
-                                    className="p-0 h-5 w-5 text-red-500 hover:bg-red-100"
+                                    className="h-4 w-4 cursor-pointer text-red-500 transition-transform duration-200 ease-in-out hover:scale-110"
                                     onClick={() => handleRemoveUser(user._id)}
                                 >
                                     <X className="h-4 w-4" />
@@ -162,7 +173,7 @@ const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose }) => {
                     )}
 
                     {/* Search Results */}
-                    <div className="max-h-[200px] overflow-y-auto space-y-2">
+                    <div className="max-h-[200px] overflow-y-auto space-y-2 custom-scrollbar">
                         {isLoading && <Loader />}
                         {error && <p className="text-red-500">{error}</p>}
                         {searchResults.map((user) => (
@@ -181,7 +192,7 @@ const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose }) => {
                         <Button variant="outline" type="button" onClick={onClose}>
                             Cancel
                         </Button>
-                        <Button type="submit">Create Group</Button>
+                        <Button variant="default" type="submit">Create Group</Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
