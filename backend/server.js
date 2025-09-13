@@ -10,7 +10,8 @@ import { notFound, errorHandler } from "./middlewares/errorMiddlewares.js";
 import { protect } from "./middlewares/authMiddleware.js";
 import cors from "cors";
 import { configureCloudinary } from "./config/cloudinary.js";
-import morgan from "morgan";
+import logger from "./config/logger/index.js";
+import morganMiddleware from "./config/logger/morgan.js";
 
 // Get current file directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -27,7 +28,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // Logging
-app.use(morgan("dev"));
+app.use(morganMiddleware);
 
 app.use(express.json()); // To accept the json data
 
@@ -42,10 +43,27 @@ app.use(
 app.use("/api/user", userRoutes);
 app.use("/api/chat", protect, chatRoutes);
 
+// Default Route
+app.get("/", (req, res) => {
+  res.send("🚀 API is running... use /health for status check");
+});
+
+// Health check route
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    uptime: process.uptime(), // how long the server has been running
+    timestamp: new Date(),
+    environment: process.env.NODE_ENV || "development",
+  });
+});
+
+
 // MIDDLEWARES
 app.use(notFound);
 app.use(errorHandler);
 
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`.magenta.bold);
+  logger.info(`🚀 Server running on http://localhost:${port} in ${process.env.NODE_ENV} mode`.magenta.bold);
 });
+
