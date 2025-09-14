@@ -1,7 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Chat from "../models/chatModel.js";
 import User from "../models/userModel.js";
-import { getOrSetCache } from "../utils/cache.js";
+import { getOrSetCache, delCache } from "../utils/cache.js";
 
 // ACCESSING/CREATING CHAT (1-TO-1)
 const accessChat = asyncHandler(async (req, res) => {
@@ -43,6 +43,12 @@ const accessChat = asyncHandler(async (req, res) => {
     const createdChat = await Chat.create(chatData);
     const FullChat = await Chat.findOne({ _id: createdChat._id })
       .populate("users", "-password");
+
+    // 🚀 Invalidate cache for both users
+    [req.user._id, userId].forEach((id) => {
+      delCache(`user:${id.toString()}:chats`);
+    });
+
     return res.status(200).json(FullChat);
   } catch (error) {
     return res.status(400).json({ message: error.message });
@@ -54,7 +60,6 @@ const fetchChats = asyncHandler(async (req, res) => {
   const userId = req.user._id.toString();
 
   try {
-    // Wrap the DB query inside getOrSetCache
     const fullChats = await getOrSetCache(`user:${userId}:chats`, async () => {
       const chats = await Chat.find({
         users: { $elemMatch: { $eq: req.user._id } },
@@ -109,6 +114,11 @@ const createGroupChat = asyncHandler(async (req, res) => {
       .populate("users", "-password")
       .populate("groupAdmin", "-password");
 
+    // 🚀 Invalidate cache for all users in group
+    fullGroupChat.users.forEach((user) => {
+      delCache(`user:${user._id.toString()}:chats`);
+    });
+
     return res.status(200).json(fullGroupChat);
   } catch (error) {
     return res.status(400).json({ message: error.message });
@@ -126,7 +136,7 @@ const renameGroup = asyncHandler(async (req, res) => {
   try {
     const updatedChat = await Chat.findByIdAndUpdate(
       chatId,
-      { chatName: chatName },
+      { chatName },
       { new: true }
     )
       .populate("users", "-password")
@@ -136,6 +146,11 @@ const renameGroup = asyncHandler(async (req, res) => {
       return res.status(404).send({ message: "Chat not found" });
     }
 
+    // 🚀 Invalidate cache for all users in this chat
+    updatedChat.users.forEach((user) => {
+      delCache(`user:${user._id.toString()}:chats`);
+    });
+
     return res.status(200).json(updatedChat);
   } catch (error) {
     return res.status(400).json({ message: error.message });
@@ -144,36 +159,64 @@ const renameGroup = asyncHandler(async (req, res) => {
 
 // ADD TO GROUP
 const addToGroup = asyncHandler(async (req, res) => {
-  const { chatId, userId } = req.body
+  const { chatId, userId } = req.body;
   if (!chatId || !userId) {
-    return res.status(400).send({ message: "Chat ID and User ID are required" })
+    return res.status(400).send({ message: "Chat ID and User ID are required" });
   }
 
-  const added = await Chat.findByIdAndUpdate(chatId, {
-    $push: { users: userId }
-  }, { new: true }).populate("users", "-password").populate("groupAdmin", "-password")
+  const added = await Chat.findByIdAndUpdate(
+    chatId,
+    { $push: { users: userId } },
+    { new: true }
+  )
+    .populate("users", "-password")
+    .populate("groupAdmin", "-password");
 
   if (!added) {
-    return res.status(400).send({ message: "Failed to add user to group" })
+    return res.status(400).send({ message: "Failed to add user to group" });
   }
-  res.status(200).json(added)
-})
+
+  // 🚀 Invalidate cache for all users in group (including new member)
+  added.users.forEach((user) => {
+    delCache(`user:${user._id.toString()}:chats`);
+  });
+
+  res.status(200).json(added);
+});
 
 // REMOVE FROM GROUP
 const removeFromGroup = asyncHandler(async (req, res) => {
-  const { chatId, userId } = req.body
+  const { chatId, userId } = req.body;
   if (!chatId || !userId) {
-    return res.status(400).send({ message: "Chat ID and User ID are required" })
+    return res.status(400).send({ message: "Chat ID and User ID are required" });
   }
 
-  const removed = await Chat.findByIdAndUpdate(chatId, {
-    $pull: { users: userId }
-  }, { new: true }).populate("users", "-password").populate("groupAdmin", "-password")
+  const removed = await Chat.findByIdAndUpdate(
+    chatId,
+    { $pull: { users: userId } },
+    { new: true }
+  )
+    .populate("users", "-password")
+    .populate("groupAdmin", "-password");
 
   if (!removed) {
-    return res.status(400).send({ message: "Failed to remove user from group" })
+    return res.status(400).send({ message: "Failed to remove user from group" });
   }
-  res.status(200).json(removed)
-})
 
-export { accessChat, fetchChats, createGroupChat, renameGroup, addToGroup, removeFromGroup };
+  // 🚀 Invalidate cache for all remaining users and the removed one
+  removed.users.forEach((user) => {
+    delCache(`user:${user._id.toString()}:chats`);
+  });
+  delCache(`user:${userId}:chats`);
+
+  res.status(200).json(removed);
+});
+
+export {
+  accessChat,
+  fetchChats,
+  createGroupChat,
+  renameGroup,
+  addToGroup,
+  removeFromGroup,
+};

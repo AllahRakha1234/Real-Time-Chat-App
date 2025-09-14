@@ -36,3 +36,12 @@ export async function clearCache(key) {
         logger.error(`Error clearing cache: ${err.message}`, { stack: err.stack });
     }
 }
+
+
+export const delCache = async (key) => {
+    try {
+        await redisClient.del(key);
+    } catch (err) {
+        console.error("Redis delete error:", err.message);
+    }
+};
