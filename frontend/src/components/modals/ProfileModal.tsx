@@ -1,10 +1,11 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Chat } from "@/types/chat";
 import { useAuthStore } from "@/store/auth.store";
-import { getReceiverUserName } from "@/utils/chat";
+import { getReceiverUser } from "@/utils/chat";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface ProfileModalProps {
-    chat: Chat | null;   // nullable because modal might open without a chat
+    chat: Chat | null;
     isOpen: boolean;
     onClose: () => void;
 }
@@ -12,28 +13,29 @@ interface ProfileModalProps {
 const ProfileModal: React.FC<ProfileModalProps> = ({ chat, isOpen, onClose }) => {
     const { user: loggedUser } = useAuthStore();
 
-    if (!chat) return null;
+    if (!chat || !loggedUser) return null;
 
-    const title = chat.isGroupChat
-        ? chat.chatName
-        : getReceiverUserName(loggedUser!, chat.users);
+    const receiverUser = getReceiverUser(loggedUser, chat.users);
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>{title}</DialogTitle>
+                    <DialogTitle>Profile Data</DialogTitle>
                 </DialogHeader>
-                <div className="mt-4">
-                    {chat.isGroupChat ? (
-                        <ul className="space-y-2">
-                            {chat.users.map((u) => (
-                                <li key={u._id}>{u.name}</li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p>Chat with {title}</p>
-                    )}
+
+                <div className="mt-6 flex flex-col items-center space-y-3">
+                    {/* Avatar */}
+                    <Avatar className="w-30 h-30">
+                        <AvatarImage src={receiverUser?.pic} alt={receiverUser?.name} />
+                        <AvatarFallback>{receiverUser?.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+
+                    {/* Name */}
+                    <p className="text-lg font-semibold">{receiverUser?.name}</p>
+
+                    {/* Email */}
+                    <p className="text-sm text-gray-500">{receiverUser?.email}</p>
                 </div>
             </DialogContent>
         </Dialog>

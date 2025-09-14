@@ -7,21 +7,39 @@ import { useChatStore } from "@/store/chat.store";
 import GroupModal from "@/components/modals/NewGroupModal";
 import { Loader } from "@/components/ui/loader";
 import ChatTopbar from "@/components/Chat/ChatTopbar";
-import { type Chat } from "@/types/chat";
 import ProfileModal from "@/components/modals/ProfileModal";
+import UpdateGroupModal from "@/components/modals/UpdateGroupModal";
 
 const ChatPage = () => {
   const { user } = useAuthStore();
-  const { chats, fetchChats, isLoading, error } = useChatStore();
-  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
-  const [selectedChat, setSelectedChat] = useState<Chat | null>(null); // lift state
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const {
+    chats,
+    fetchChats,
+    isLoading,
+    error,
+    selectedChat,
+    setSelectedChat,
+  } = useChatStore();
 
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isUpdateGroupModalOpen, setIsUpdateGroupModalOpen] = useState(false);
+
+  // ✅ Fetch chats when user loads
   useEffect(() => {
-    if (user) {
-      fetchChats();
-    }
+    if (user) fetchChats();
   }, [user, fetchChats]);
+
+  const handleOpenDetails = () => {
+    if (!selectedChat) return;
+    if (selectedChat.isGroupChat) {
+      setIsUpdateGroupModalOpen(true);
+    } else {
+      setIsProfileModalOpen(true);
+    }
+  };
+
+  console.log("Chats: ", chats)
 
   return (
     <div className="h-[92vh] w-screen px-16 pt-6 overflow-hidden">
@@ -45,7 +63,7 @@ const ChatPage = () => {
           <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
             {isLoading && (
               <div className="flex h-full items-center justify-center">
-                <Loader />
+                <Loader size={60} />
               </div>
             )}
             {error && <p className="text-red-500">{error}</p>}
@@ -63,12 +81,7 @@ const ChatPage = () => {
         <div className="flex-1 h-[85vh] bg-white rounded-md shadow-sm flex flex-col">
           {selectedChat ? (
             <>
-              {/* 🔹 Topbar with name + eye button */}
-              <ChatTopbar
-                chat={selectedChat}
-                onOpenProfile={() => setIsProfileModalOpen(true)}
-              />
-              {/* Messages will go here */}
+              <ChatTopbar chat={selectedChat} onOpenProfile={handleOpenDetails} />
               <div className="flex-1 flex items-center justify-center text-gray-500">
                 Messages UI
               </div>
@@ -93,6 +106,13 @@ const ChatPage = () => {
         chat={selectedChat}
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
+      />
+
+      {/* Update Group Modal */}
+      <UpdateGroupModal
+        chat={selectedChat}
+        isOpen={isUpdateGroupModalOpen}
+        onClose={() => setIsUpdateGroupModalOpen(false)}
       />
     </div>
   );
