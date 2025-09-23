@@ -6,6 +6,7 @@ import { dirname, join } from "path";
 import connectDB from "./config/conn.js";
 import userRoutes from "./routes/userRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
 import { notFound, errorHandler } from "./middlewares/errorMiddlewares.js";
 import { protect } from "./middlewares/authMiddleware.js";
 import cors from "cors";
@@ -42,6 +43,8 @@ app.use(
 
 app.use("/api/user", userRoutes);
 app.use("/api/chat", protect, chatRoutes);
+app.use("/api/message", protect, messageRoutes);
+
 
 // Default Route
 app.get("/", (req, res) => {
