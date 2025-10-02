@@ -66,7 +66,7 @@ const ChatPage = () => {
                 <Loader size={60} />
               </div>
             )}
-            {error && <p className="text-red-500">{error}</p>}
+            {error && <p className="text-red-500 flex justify-center mt-[50%]">{error}</p>}
             {!isLoading && !error && (
               <ChatUser
                 chats={chats ?? []}
