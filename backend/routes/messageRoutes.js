@@ -3,7 +3,7 @@ import { sendMessage, getAllChatMessages } from "../controllers/messageControlle
 
 const router = express.Router();
 
-router.get("/:chatId", getAllChatMessages); // For Sending Message
+router.get("/:chatId", getAllChatMessages); // For Getting All Message of a Chat
 router.route("/").post(sendMessage); // For Sending Message
 
 

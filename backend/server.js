@@ -43,7 +43,7 @@ app.use(
 
 app.use("/api/user", userRoutes);
 app.use("/api/chat", protect, chatRoutes);
-app.use("/api/message", protect, messageRoutes);
+app.use("/api/messages", protect, messageRoutes);
 
 
 // Default Route
