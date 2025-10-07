@@ -9,6 +9,7 @@ import { Loader } from "@/components/ui/loader";
 import ChatTopbar from "@/components/Chat/ChatTopbar";
 import ProfileModal from "@/components/modals/ProfileModal";
 import UpdateGroupModal from "@/components/modals/UpdateGroupModal";
+import ChatWindow from "@/components/Chat/ChatWindow";
 
 const ChatPage = () => {
   const { user } = useAuthStore();
@@ -25,7 +26,7 @@ const ChatPage = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isUpdateGroupModalOpen, setIsUpdateGroupModalOpen] = useState(false);
 
-  // ✅ Fetch chats when user loads
+  // Fetch chats when user loads
   useEffect(() => {
     if (user) fetchChats();
   }, [user, fetchChats]);
@@ -38,8 +39,6 @@ const ChatPage = () => {
       setIsProfileModalOpen(true);
     }
   };
-
-  console.log("Chats: ", chats)
 
   return (
     <div className="h-[92vh] w-screen px-16 pt-6 overflow-hidden">
@@ -66,7 +65,7 @@ const ChatPage = () => {
                 <Loader size={60} />
               </div>
             )}
-            {error && <p className="text-red-500 flex justify-center mt-[50%]">{error}</p>}
+            {error && <p className="text-red-500 flex justify-center mt-[50%] p-5 text-center">{error}</p>}
             {!isLoading && !error && (
               <ChatUser
                 chats={chats ?? []}
@@ -78,13 +77,11 @@ const ChatPage = () => {
         </div>
 
         {/* Main Chat Window */}
-        <div className="flex-1 h-[85vh] bg-white rounded-md shadow-sm flex flex-col">
+        <div className="flex-1 max-h-[85vh] bg-white rounded-md shadow-sm flex flex-col">
           {selectedChat ? (
             <>
               <ChatTopbar chat={selectedChat} onOpenProfile={handleOpenDetails} />
-              <div className="flex-1 flex items-center justify-center text-gray-500">
-                Messages UI
-              </div>
+              <ChatWindow chatId={selectedChat._id} currentUser={user} />
             </>
           ) : (
             <div className="flex flex-col items-center justify-center h-full space-y-4">

@@ -29,7 +29,7 @@ export interface ChatState {
     getChatUserIds: (currentUserId: string) => string[];
 }
 
-const getErrorMessage = (err: any): string =>
+export const getErrorMessage = (err: any): string =>
     err.response?.data?.message || err.message || "Something went wrong";
 
 export const useChatStore = create<ChatState>()(
@@ -43,7 +43,7 @@ export const useChatStore = create<ChatState>()(
             setChats: (chats) => set({ chats }),
             setSelectedChat: (chat) => set({ selectedChat: chat }),
 
-            // ✅ Create or access one-to-one chat
+            // Create or access one-to-one chat
             createOrAccessChat: async (userId) => {
                 set({ isLoading: true, error: null });
                 try {
@@ -63,7 +63,7 @@ export const useChatStore = create<ChatState>()(
                 }
             },
 
-            // ✅ Fetch all chats
+            // Fetch all chats
             fetchChats: async () => {
                 set({ isLoading: true, error: null });
                 try {
@@ -78,7 +78,7 @@ export const useChatStore = create<ChatState>()(
                 }
             },
 
-            // ✅ Create group
+            // Create group
             createGroupChat: async (groupName, usersIds) => {
                 set({ isLoading: true, error: null });
                 try {
@@ -99,7 +99,7 @@ export const useChatStore = create<ChatState>()(
                 }
             },
 
-            // ✅ Rename group
+            // Rename group
             renameGroup: async (chatId, chatName) => {
                 try {
                     const { data } = await api.post("/api/chat/group-rename", {
@@ -123,7 +123,7 @@ export const useChatStore = create<ChatState>()(
                 }
             },
 
-            // ✅ Add user
+            // Add user
             addUserToGroup: async (chatId, userId) => {
                 try {
                     const { data } = await api.post("/api/chat/group-add", {
@@ -147,7 +147,7 @@ export const useChatStore = create<ChatState>()(
                 }
             },
 
-            // ✅ Remove user
+            // Remove user
             removeUserFromGroup: async (chatId, userId) => {
                 try {
                     const { data } = await api.post("/api/chat/group-remove", {
@@ -171,7 +171,7 @@ export const useChatStore = create<ChatState>()(
                 }
             },
 
-            // ✅ Leave group
+            // Leave group
             leaveGroup: async (chatId, userId) => {
                 try {
                     await api.post("/api/chat/group-remove", { chatId, userId });
@@ -190,7 +190,7 @@ export const useChatStore = create<ChatState>()(
                 }
             },
 
-            // ✅ Helper
+            // Helper
             getChatUserIds: (currentUserId) => {
                 const chats = get().chats || [];
                 return chats.flatMap((chat) =>
