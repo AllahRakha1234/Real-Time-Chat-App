@@ -56,7 +56,7 @@ const sendMessage = asyncHandler(async (req, res) => {
     // Respond with created message
     res.status(201).json({
         success: true,
-        data: message,
+        message: message,
     });
 });
 
@@ -82,7 +82,7 @@ const getAllChatMessages = asyncHandler(async (req, res) => {
     res.status(200).json({
         success: true,
         count: Array.isArray(messages) ? messages.length : 0,
-        data: messages,
+        messages: messages,
     });
 });
 
