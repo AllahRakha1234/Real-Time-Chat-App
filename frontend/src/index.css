@@ -141,11 +141,11 @@
 .custom-scrollbar {
   scrollbar-width: thin; /* Firefox */
   scrollbar-color: var(--primary) transparent; /* Firefox */
-  padding-right: 4px; /* Adds space between content & scrollbar */
+  padding-right: 1px; /* Adds space between content & scrollbar */
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 1.5px; /* even thinner */
+  width: 2px; /* even thinner */
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -156,7 +156,7 @@
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: var(--primary);
   border-radius: 9999px;
-  border: 2px solid transparent; /* creates spacing effect */
+  border: 1px solid transparent; /* creates spacing effect */
   background-clip: content-box;  /* ensures border creates space */
 }
 

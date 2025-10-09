@@ -27,7 +27,7 @@ const ChatAvatar: React.FC<ChatAvatarProps> = ({
 
     return (
         <Avatar className={size}>
-            {/* ✅ Always render both */}
+            {/* Always render both */}
             <AvatarImage src={displayPic} alt={receiverUser?.name} />
             <AvatarFallback className={`${isSelected ? "text-primary" : "bg-primary/50"}`}>
                 {displayName?.charAt(0).toUpperCase() || "?"}
