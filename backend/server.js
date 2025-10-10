@@ -13,6 +13,7 @@ import cors from "cors";
 import { configureCloudinary } from "./config/cloudinary.js";
 import logger from "./config/logger/index.js";
 import morganMiddleware from "./config/logger/morgan.js";
+import { Server } from "socket.io";
 
 // Get current file directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -66,7 +67,20 @@ app.get("/health", (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   logger.info(`🚀 Server running on http://localhost:${port} in ${process.env.NODE_ENV} mode`.magenta.bold);
+});
+
+// SOCKET.IO SETUP
+
+const io = new Server(server, {
+  pingTimeout: 60000,
+  cors: {
+    origin: "http://localhost:5173",
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("Connected to socket.io", socket.id);
 });
 
