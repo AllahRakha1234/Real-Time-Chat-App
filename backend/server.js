@@ -81,6 +81,34 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("Connected to socket.io", socket.id);
+
+  socket.on("setup", (userData) => {
+    socket.join(userData._id)
+    console.log("User connected to socket: ", userData._id)
+    socket.emit("connected")
+  })
+
+  socket.on("join-chat", (roomId) => {
+    console.log("User joined room: ", roomId)
+    socket.join(roomId)
+  })
+
+  socket.on("new-message", (newMessage) => {
+    let chatId = newMessage.chat._id
+    if (!chatId) {
+      console.log("No chatId in the new message")
+      return
+    }
+    if (!newMessage.chat.users) {
+      console.log("No users in the chat")
+      return
+    }
+    
+    newMessage.chat.users.forEach((user) => {
+      if (user._id == newMessage.sender._id) return;
+      socket.to(user._id).emit("message-received", newMessage) // can use "in" as well as "to"
+    })
+  })
+
 });
 
