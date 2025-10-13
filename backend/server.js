@@ -103,12 +103,20 @@ io.on("connection", (socket) => {
       console.log("No users in the chat")
       return
     }
-    
+
     newMessage.chat.users.forEach((user) => {
       if (user._id == newMessage.sender._id) return;
       socket.to(user._id).emit("message-received", newMessage) // can use "in" as well as "to"
     })
   })
+
+  socket.on("typing", ({chatId, user}) => {
+    socket.in(chatId).emit("typing", {chatId ,user});
+  });
+
+  socket.on("stop-typing", (chatId) => {
+    socket.in(chatId).emit("stop-typing", chatId);
+  });
 
 });
 
