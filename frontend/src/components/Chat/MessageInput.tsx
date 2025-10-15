@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SendHorizonal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface MessageInputProps {
   onSend: (content: string) => void;
+  onTyping?: () => void;
+  onStopTyping?: () => void;
 }
 
-const MessageInput = ({ onSend }: MessageInputProps) => {
+const MessageInput = ({ onSend, onTyping, onStopTyping }: MessageInputProps) => {
   const [message, setMessage] = useState("");
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
 
   const handleSend = () => {
     if (!message.trim()) return;
@@ -23,6 +27,20 @@ const MessageInput = ({ onSend }: MessageInputProps) => {
     }
   };
 
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessage(e.target.value);
+
+    // Notify typing
+    if (onTyping) onTyping();
+
+    // Debounce stop typing after 1.5s of inactivity
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      if (onStopTyping) onStopTyping();
+    }, 1500);
+  };
+
   return (
     <div className="flex items-center w-full gap-3 px-3 py-2 bg-white">
       {/* direct flex child — must grow/shrink */}
@@ -31,9 +49,9 @@ const MessageInput = ({ onSend }: MessageInputProps) => {
           type="text"
           placeholder="Type a message..."
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={handleChange}
           onKeyDown={handleKeyDown}
-          className="w-full"        
+          className="w-full"
         />
       </div>
 

@@ -13,6 +13,8 @@ const ChatWindow = ({ chatId, currentUser }: { chatId: string; currentUser: User
     const { selectedChat } = useChatStore();
     const [socketConnected, setSocketConnected] = useState(false);
     const socketRef = useRef<any>(null);
+    const [isTyping, setIsTyping] = useState(false);
+    const [typingUser, setTypingUser] = useState<string | null>(null);
 
     const handleSendMessage = async (content: string) => {
         if (!content.trim()) return;
@@ -53,7 +55,6 @@ const ChatWindow = ({ chatId, currentUser }: { chatId: string; currentUser: User
 
         const handleMessageReceived = (newMessage: Message) => {
             if (newMessage.chat._id === selectedChat?._id) {
-                console.log("New message received:", newMessage);
                 addMessage(newMessage);
             } else {
                 console.log("New message for another chat:", newMessage);
@@ -67,6 +68,27 @@ const ChatWindow = ({ chatId, currentUser }: { chatId: string; currentUser: User
             socketRef.current.off("message-received", handleMessageReceived);
         };
     }, [selectedChat?._id, addMessage]);
+
+    useEffect(() => {
+        if (!socketRef.current) return;
+
+        socketRef.current.on("typing", ({ chatId, user }: { chatId: string, user: string }) => {
+            if (chatId === selectedChat?._id) {
+                setIsTyping(true)
+                setTypingUser(user);
+            };
+        });
+
+        socketRef.current.on("stop-typing", (chatId: string) => {
+            if (chatId === selectedChat?._id) setIsTyping(false);
+        });
+
+        return () => {
+            socketRef.current.off("typing");
+            socketRef.current.off("stop-typing");
+        };
+    }, [selectedChat?._id]);
+
 
 
     if (isLoading)
@@ -85,12 +107,25 @@ const ChatWindow = ({ chatId, currentUser }: { chatId: string; currentUser: User
 
     return (
         <div className="relative flex flex-col h-full w-full">
-            <div className="flex-1 max-h-[68vh] overflow-y-auto bg-gray-50 mt-2">
+            <div className="flex-1 max-h-[68vh] overflow-hidden bg-gray-50 mt-2">
                 <MessageList messages={messages} currentUser={currentUser} />
+
+                <div className="h-6">
+                    {isTyping && (
+                        <div className="text-sm ml-5 text-gray-500 italic animate-pulse">
+                            {typingUser} is typing...
+                        </div>
+                    )}
+                </div>
             </div>
 
+
             <div className="flex-shrink-0 border-t-2 border-primary rounded-xl pt-2">
-                <MessageInput onSend={handleSendMessage} />
+                <MessageInput
+                    onSend={handleSendMessage}
+                    onTyping={() => socketRef.current.emit("typing", { chatId, user: currentUser?.name })}
+                    onStopTyping={() => socketRef.current.emit("stop-typing", chatId)}
+                />
             </div>
         </div>
     );
