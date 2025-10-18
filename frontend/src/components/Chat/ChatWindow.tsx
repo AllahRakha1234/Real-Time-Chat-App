@@ -107,17 +107,20 @@ const ChatWindow = ({ chatId, currentUser }: { chatId: string; currentUser: User
 
     return (
         <div className="relative flex flex-col h-full w-full">
-            <div className="flex-1 max-h-[68vh] overflow-hidden bg-gray-50 mt-2">
-                <MessageList messages={messages} currentUser={currentUser} />
-
-                <div className="h-6">
-                    {isTyping && (
-                        <div className="text-sm ml-5 text-gray-500 italic animate-pulse">
-                            {typingUser} is typing...
-                        </div>
-                    )}
+            <div className="flex flex-col flex-1 max-h-[68vh] bg-gray-50 mt-2 overflow-hidden">
+                {/* Scrollable message list */}
+                <div className="flex-1 overflow-y-auto max-h-[65vh]">
+                    <MessageList messages={messages} currentUser={currentUser} />
                 </div>
+
+                {/* Fixed typing indicator area */}
+                {isTyping && (
+                    <div className="text-sm ml-3 text-gray-500 italic animate-pulse">
+                        {typingUser} is typing...
+                    </div>
+                )}
             </div>
+
 
 
             <div className="flex-shrink-0 border-t-2 border-primary rounded-xl pt-2">
