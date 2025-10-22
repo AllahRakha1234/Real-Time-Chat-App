@@ -30,6 +30,8 @@ import PaginationSection from "./PaginationSection";
 import { toast } from "react-hot-toast"
 import useDebounce from "@/hooks/useDebounce";
 import SearchResultItem from "./common/SearchUserItem";
+import { useNotificationStore } from "@/store/notification.store";
+import NotificationsMenu from "./Notifications/NotificationsMenu";
 
 
 const Header = () => {
@@ -43,6 +45,7 @@ const Header = () => {
 
   const { user, searchUser, searchResults, logout, isLoading, error, clearError, clearSearchResults, totalCounts, hasNext } =
     useAuthStore();
+
 
   const { createOrAccessChat, getChatUserIds } = useChatStore();
   const existingChatUserIds = new Set(getChatUserIds(user?._id ?? ""));
@@ -226,7 +229,7 @@ const Header = () => {
 
         {/* Right: Notifications + User menu */}
         <div className="flex items-center gap-2">
-          <Bell className="h-5 w-5" />
+          <NotificationsMenu />
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-1 cursor-pointer bg-gray-100 px-2 py-1 rounded-lg">

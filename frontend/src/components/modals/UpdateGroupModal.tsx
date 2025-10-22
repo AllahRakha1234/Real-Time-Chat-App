@@ -67,7 +67,7 @@ const UpdateGroupModal: React.FC<UpdateGroupModalProps> = ({
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
     const isAdmin = chat?.groupAdmin?._id === loggedUser?._id;
 
-    // 🔍 Search users
+    // Search users
     useEffect(() => {
         if (debouncedSearchTerm?.trim()) {
             clearError();
@@ -79,7 +79,7 @@ const UpdateGroupModal: React.FC<UpdateGroupModalProps> = ({
         }
     }, [debouncedSearchTerm]);
 
-    // ♻️ Reset when modal closes or chat changes
+    // Reset when modal closes or chat changes
     useEffect(() => {
         if (!isOpen) {
             reset({ groupName: chat?.chatName || "" });
@@ -91,7 +91,7 @@ const UpdateGroupModal: React.FC<UpdateGroupModalProps> = ({
         }
     }, [isOpen, chat]);
 
-    // ✅ Update group name
+    // Update group name
     const handleUpdateGroupName = async (data: GroupUpdateSchema) => {
         if (!chat) return;
         setIsRenaming(true);
@@ -106,7 +106,7 @@ const UpdateGroupModal: React.FC<UpdateGroupModalProps> = ({
         }
     };
 
-    // ✅ Add user
+    // Add user
     const handleAddUser = async (user: User) => {
         if (!chat) return;
         if (!isAdmin) return toast.error("Only admin can add users");
@@ -123,10 +123,11 @@ const UpdateGroupModal: React.FC<UpdateGroupModalProps> = ({
         }
     };
 
-    // ✅ Remove user
+    // Remove user
     const handleRemoveUser = async (userId: string) => {
         if (!chat) return;
         if (!isAdmin) return toast.error("Only admin can remove users");
+        console.log("chat users length: ", chat);
         if (chat.users.length <= 3) {
             return toast.error("Group must have at least 3 members 👥");
         }
@@ -143,7 +144,7 @@ const UpdateGroupModal: React.FC<UpdateGroupModalProps> = ({
         }
     };
 
-    // ✅ Leave group
+    // Leave group
     const handleLeaveGroup = async () => {
         if (!chat || !loggedUser) return;
         setIsLeaving(true);
@@ -158,7 +159,7 @@ const UpdateGroupModal: React.FC<UpdateGroupModalProps> = ({
         }
     };
 
-    // ✅ Utility: update both chats + selectedChat
+    // Utility: update both chats + selectedChat
     const updateChats = (updated: Chat) => {
         setChats(chats.map((c) => (c._id === updated._id ? updated : c)));
         setSelectedChat(updated);

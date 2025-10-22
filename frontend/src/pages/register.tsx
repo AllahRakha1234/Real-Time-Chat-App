@@ -34,10 +34,7 @@ const RegisterPage = () => {
   const onSubmit = async (data: SignupSchema) => {
     // Clear any previous errors
     clearError();
-
-    console.log("Form data:", data);
-    console.log("Image data:", data.image);
-
+    
     try {
       // Create FormData for file upload
       const formData = new FormData();
