@@ -107,7 +107,7 @@ const NotificationsMenu = () => {
               );
             })
           ) : (
-            <div className="text-center text-gray-500 text-sm py-6">
+            <div className="text-center text-lg text-gray-500 text-sm py-4">
               No new notifications
             </div>
           )}
