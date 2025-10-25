@@ -221,7 +221,7 @@ const Header = () => {
         {/* Center: Brand */}
         <NavigationMenu className="hidden md:flex">
           <NavigationMenuList>
-            <span className="text-slate-700 text-2xl font-semibold">
+            <span className="text-slate-800 text-2xl font-semibold">
               Smart Talk
             </span>
           </NavigationMenuList>
