@@ -63,7 +63,7 @@ const sendMessage = asyncHandler(async (req, res) => {
 // GET ALL CHAT MESSAGES CONTROLLER (with cache)
 const getAllChatMessages = asyncHandler(async (req, res) => {
     const { chatId } = req.params;
-
+    console.log("Fetching messages for chatId:", chatId);
     if (!chatId) {
         res.status(400);
         throw new Error("chatId param is required.");

@@ -14,6 +14,7 @@ import { configureCloudinary } from "./config/cloudinary.js";
 import logger from "./config/logger/index.js";
 import morganMiddleware from "./config/logger/morgan.js";
 import { Server } from "socket.io";
+import { customRateLimiter } from "./middlewares/rateLimiter.js";
 
 // Get current file directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -42,10 +43,13 @@ app.use(
   })
 );
 
+app.set("trust proxy", true); // if behind a proxy (e.g., Heroku, Nginx)
+app.use(customRateLimiter); // Apply rate limiting to all requests
+
+// ROUTES
 app.use("/api/user", userRoutes);
 app.use("/api/chat", protect, chatRoutes);
 app.use("/api/messages", protect, messageRoutes);
-
 
 // Default Route
 app.get("/", (req, res) => {
@@ -62,7 +66,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-
 // MIDDLEWARES
 app.use(notFound);
 app.use(errorHandler);
@@ -72,7 +75,6 @@ const server = app.listen(port, () => {
 });
 
 // SOCKET.IO SETUP
-
 const io = new Server(server, {
   pingTimeout: 60000,
   cors: {
@@ -110,8 +112,8 @@ io.on("connection", (socket) => {
     })
   })
 
-  socket.on("typing", ({chatId, user}) => {
-    socket.in(chatId).emit("typing", {chatId ,user});
+  socket.on("typing", ({ chatId, user }) => {
+    socket.in(chatId).emit("typing", { chatId, user });
   });
 
   socket.on("stop-typing", (chatId) => {
@@ -119,4 +121,3 @@ io.on("connection", (socket) => {
   });
 
 });
-
