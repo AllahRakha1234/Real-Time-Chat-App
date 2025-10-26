@@ -1,4 +1,3 @@
-import express from "express";
 import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
 import generateToken from "../utils/generateToken.js";
@@ -6,6 +5,7 @@ import { uploadBufferToCloudinary } from "../config/cloudinary.js";
 
 // USER REGISTERING CONTROLLER
 const registerUser = asyncHandler(async (req, res, next) => {
+
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
