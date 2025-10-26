@@ -47,7 +47,9 @@ export const useChatStore = create<ChatState>()(
             createOrAccessChat: async (userId) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const { data } = await api.post("/api/chat", { userId });
+                    const response = await api.post("/api/chat", { userId });
+                    const data = response?.data
+                    console.log("createOrAccessChat response data:", data);
                     set((state) => ({
                         chats: state.chats.some((c) => c._id === data._id)
                             ? state.chats
