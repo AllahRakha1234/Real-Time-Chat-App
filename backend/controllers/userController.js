@@ -64,7 +64,6 @@ const registerUser = asyncHandler(async (req, res, next) => {
 // USER LOGIN CONTROLLER
 const loginUser = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
-  console.log("Login attempt with email:", email, password);
   if (!email || !password) {
     res.status(400);
     throw new Error("Please enter all the Fields");
@@ -223,8 +222,6 @@ const resetPassword = asyncHandler(async (req, res) => {
     resetTokenExpiry: { $gt: Date.now() }
   });
 
-  console.log("Reset Password - Found User:", user);
-
   if (!user) {
     res.status(400);
     throw new Error("Invalid or expired reset token!");
@@ -241,8 +238,5 @@ const resetPassword = asyncHandler(async (req, res) => {
     message: "Password reset successfully!",
   });
 });
-
-
-
 
 export { registerUser, loginUser, allUser, sendOtp, verifyOtp, resetPassword };
