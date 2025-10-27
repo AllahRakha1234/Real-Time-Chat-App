@@ -6,6 +6,8 @@ import ForgotPasswordPage from "@/pages/forgotPassword";
 import NotFoundPage from "@/pages/notFound";
 import RootLayout from "@/layouts/RootLayout";
 import ErrorElement from "@/pages/errorElement";
+import OtpPage from "@/pages/otp";
+import ResetPasswordPage from "@/pages/resetPassword";
 
 export const router = createBrowserRouter([
   {
@@ -30,6 +32,14 @@ export const router = createBrowserRouter([
   {
     path: "/forgot-password",
     element: <ForgotPasswordPage />,
+  },
+  {
+    path: "/otp",
+    element: <OtpPage />,
+  },
+  {
+    path: "/reset-password",
+    element: <ResetPasswordPage />,
   },
   {
     path: "*",

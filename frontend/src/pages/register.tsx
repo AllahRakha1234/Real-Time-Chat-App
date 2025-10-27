@@ -7,7 +7,6 @@ import { signupSchema, type SignupSchema } from "../lib/validations/auth";
 import { toast } from "react-hot-toast";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Loader } from "@/components/ui/loader";
 
 const RegisterPage = () => {
   const {
@@ -34,7 +33,7 @@ const RegisterPage = () => {
   const onSubmit = async (data: SignupSchema) => {
     // Clear any previous errors
     clearError();
-    
+
     try {
       // Create FormData for file upload
       const formData = new FormData();
@@ -49,9 +48,15 @@ const RegisterPage = () => {
 
       const result = await register(formData);
 
-      if (result.success && result.user) {
+      if (result.success) {
         toast.success("Signup successful!");
-        reset();
+        reset({
+          name: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          image: undefined,
+        });
         setTimeout(() => navigate("/"), 1000);
       } else if (result.error) {
         toast.error(result.error);

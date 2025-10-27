@@ -49,7 +49,7 @@ export const useChatStore = create<ChatState>()(
                 try {
                     const response = await api.post("/api/chat", { userId });
                     const data = response?.data
-                    console.log("createOrAccessChat response data:", data);
+
                     set((state) => ({
                         chats: state.chats.some((c) => c._id === data._id)
                             ? state.chats

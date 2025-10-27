@@ -127,7 +127,7 @@ const UpdateGroupModal: React.FC<UpdateGroupModalProps> = ({
     const handleRemoveUser = async (userId: string) => {
         if (!chat) return;
         if (!isAdmin) return toast.error("Only admin can remove users");
-        console.log("chat users length: ", chat);
+
         if (chat.users.length <= 3) {
             return toast.error("Group must have at least 3 members 👥");
         }

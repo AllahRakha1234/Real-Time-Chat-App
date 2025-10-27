@@ -13,7 +13,7 @@ export const loginSchema = z.object({
 
 export const signupSchema = z
   .object({
-    name: z.string().min(1, { message: "Name is required" }),
+    name: z.string().min(3, { message: "Name is required and must be atleast 3 characters long." }),
     email: z
       .string()
       .min(1, { message: "Email is required" })
