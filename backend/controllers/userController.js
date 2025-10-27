@@ -2,6 +2,9 @@ import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
 import generateToken from "../utils/generateToken.js";
 import { uploadBufferToCloudinary } from "../config/cloudinary.js";
+import { sendEmail } from "../utils/sendEmail.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 // USER REGISTERING CONTROLLER
 const registerUser = asyncHandler(async (req, res, next) => {
@@ -61,7 +64,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
 // USER LOGIN CONTROLLER
 const loginUser = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
-
+  console.log("Login attempt with email:", email, password);
   if (!email || !password) {
     res.status(400);
     throw new Error("Please enter all the Fields");
@@ -121,6 +124,125 @@ const allUser = asyncHandler(async (req, res, next) => {
   });
 });
 
+// SEND OTP CONTROLLER
+const sendOtp = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    res.status(400);
+    throw new Error("Email is required");
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User with this email does not exist");
+  }
+
+  // Generate 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Set OTP expiry (e.g., 10 minutes)
+  const expiry = new Date(Date.now() + 10 * 60 * 1000);
+
+  user.resetOtp = otp;
+  user.resetOtpExpiry = expiry;
+
+  await user.save();
+
+  // Send OTP via email
+  await sendEmail(
+    email,
+    "Your SmartTalk Password Reset OTP",
+    `Your OTP for password reset is: ${otp}. It will expire in 10 minutes.`
+  );
+
+  res.status(200).json({ message: "OTP sent to your email" });
+});
+
+// VERIFY OTP CONTROLLER
+const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user || !user.resetOtp) {
+      return res.status(400).json({ message: "Invalid request" });
+    }
+
+    if (user.resetOtp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    if (user.resetOtpExpiry < Date.now()) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    // Generate secure reset token (valid for 15 mins)
+    const resetToken = jwt.sign(
+      { email: user.email },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "15m" }
+    );
+
+    user.resetOtp = undefined;
+    user.resetOtpExpiry = undefined;
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = Date.now() + 15 * 60 * 1000;
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      message: "OTP Verified successfully",
+      resetToken,
+    });
+
+  } catch (error) {
+    console.error("Verify OTP Error:", error.message);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// RESET PASSWORD ONTROLLERS
+const resetPassword = asyncHandler(async (req, res) => {
+  const { resetToken, newPassword } = req.body;
+
+  if (!resetToken || !newPassword) {
+    res.status(400);
+    throw new Error("Reset token & new password are required");
+  }
+
+  const user = await User.findOne({
+    resetToken,
+    resetTokenExpiry: { $gt: Date.now() }
+  });
+
+  console.log("Reset Password - Found User:", user);
+
+  if (!user) {
+    res.status(400);
+    throw new Error("Invalid or expired reset token!");
+  }
+
+  user.password = newPassword;
+  user.resetToken = undefined;
+  user.resetTokenExpiry = undefined;
+
+  await user.save();
+
+  res.json({
+    success: true,
+    message: "Password reset successfully!",
+  });
+});
 
 
-export { registerUser, loginUser, allUser };
+
+
+export { registerUser, loginUser, allUser, sendOtp, verifyOtp, resetPassword };
