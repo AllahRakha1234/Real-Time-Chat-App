@@ -12,7 +12,7 @@ import {
 } from "../components/ui/dropdown-menu";
 import { Button } from "../components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Bell, ChevronDown, Search, User } from "lucide-react";
+import { ChevronDown, Search, User } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -30,8 +30,8 @@ import PaginationSection from "./PaginationSection";
 import { toast } from "react-hot-toast"
 import useDebounce from "@/hooks/useDebounce";
 import SearchResultItem from "./common/SearchUserItem";
-import { useNotificationStore } from "@/store/notification.store";
 import NotificationsMenu from "./Notifications/NotificationsMenu";
+import ProfileModal from "@/components/modals/ProfileModal";
 
 
 const Header = () => {
@@ -39,14 +39,13 @@ const Header = () => {
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(5)
   const [addingUserId, setAddingUserId] = useState<string | null>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  // NEW: useState for searchTerm instead of useForm Controller
+
+  // useState for searchTerm instead of useForm Controller
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  const { user, searchUser, searchResults, logout, isLoading, error, clearError, clearSearchResults, totalCounts, hasNext } =
-    useAuthStore();
-
-
+  const { user, searchUser, searchResults, logout, isLoading, error, clearError, clearSearchResults, totalCounts, hasNext } = useAuthStore();
   const { createOrAccessChat, getChatUserIds } = useChatStore();
   const existingChatUserIds = new Set(getChatUserIds(user?._id ?? ""));
 
@@ -243,14 +242,23 @@ const Header = () => {
             <DropdownMenuContent align="end" className="w-42 border border-gray-300">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">Profile</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">Settings</DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => setIsProfileModalOpen(true)}
+              >
+                Profile
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogoutClick} className="text-red-600 cursor-pointer">Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        profile={user}
+      />
     </header>
   );
 };

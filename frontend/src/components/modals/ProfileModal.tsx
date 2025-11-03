@@ -1,21 +1,34 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Chat } from "@/types/chat";
+import type { User } from "@/types/auth";
 import { useAuthStore } from "@/store/auth.store";
 import { getReceiverUser } from "@/utils/chat";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface ProfileModalProps {
-    chat: Chat | null;
+    chat?: Chat | null;
+    profile?: User | null;
     isOpen: boolean;
     onClose: () => void;
 }
 
-const ProfileModal: React.FC<ProfileModalProps> = ({ chat, isOpen, onClose }) => {
+const ProfileModal: React.FC<ProfileModalProps> = ({ chat, profile, isOpen, onClose }) => {
     const { user: loggedUser } = useAuthStore();
 
-    if (!chat || !loggedUser) return null;
+    if (!isOpen) return null;
 
-    const receiverUser = getReceiverUser(loggedUser, chat.users);
+    // Determine which user to show
+    let userToShow: User | null = null;
+
+    if (profile) {
+        userToShow = profile;
+    } else if (chat && loggedUser && chat.users && chat.users.length > 0) {
+        userToShow = getReceiverUser(loggedUser, chat.users) || loggedUser;
+    } else {
+        userToShow = loggedUser;
+    }
+
+    if (!userToShow) return null;
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -25,17 +38,13 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ chat, isOpen, onClose }) =>
                 </DialogHeader>
 
                 <div className="mt-6 flex flex-col items-center space-y-3">
-                    {/* Avatar */}
                     <Avatar className="w-30 h-30">
-                        <AvatarImage src={receiverUser?.pic} alt={receiverUser?.name} />
-                        <AvatarFallback>{receiverUser?.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={userToShow.pic || ""} alt={userToShow.name} />
+                        <AvatarFallback>{userToShow.name?.charAt(0)}</AvatarFallback>
                     </Avatar>
 
-                    {/* Name */}
-                    <p className="text-lg font-semibold">{receiverUser?.name}</p>
-
-                    {/* Email */}
-                    <p className="text-sm text-gray-500">{receiverUser?.email}</p>
+                    <p className="text-lg font-semibold">{userToShow.name}</p>
+                    <p className="text-sm text-gray-500">{userToShow.email}</p>
                 </div>
             </DialogContent>
         </Dialog>
