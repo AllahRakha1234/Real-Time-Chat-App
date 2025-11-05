@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CirclePlus, MessageCirclePlus } from "lucide-react";
 import ChatUser from "@/components/Chat/ChatUser";
@@ -6,10 +6,12 @@ import { useAuthStore } from "@/store/auth.store";
 import { useChatStore } from "@/store/chat.store";
 import GroupModal from "@/components/modals/NewGroupModal";
 import { Loader } from "@/components/ui/loader";
-import ChatTopbar from "@/components/Chat/ChatTopbar";
-import ProfileModal from "@/components/modals/ProfileModal";
-import UpdateGroupModal from "@/components/modals/UpdateGroupModal";
-import ChatWindow from "@/components/Chat/ChatWindow";
+
+const ChatTopbar = React.lazy(() => import("@/components/Chat/ChatTopbar"))
+const ProfileModal = React.lazy(() => import("@/components/modals/ProfileModal"))
+const UpdateGroupModal = React.lazy(() => import("@/components/modals/UpdateGroupModal"))
+const ChatWindow = React.lazy(() => import("@/components/Chat/ChatWindow"))
+
 
 const ChatPage = () => {
   const { user } = useAuthStore();
@@ -78,39 +80,49 @@ const ChatPage = () => {
 
         {/* Main Chat Window */}
         <div className="flex-1 max-h-[85vh] bg-white rounded-md shadow-sm flex flex-col">
-          {selectedChat ? (
-            <>
-              <ChatTopbar chat={selectedChat} onOpenProfile={handleOpenDetails} />
-              <ChatWindow chatId={selectedChat._id} currentUser={user} />
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full space-y-4">
-              <p className="text-2xl text-gray-500">Select a chat to start messaging</p>
-              <MessageCirclePlus className="text-gray-400" size={80} />
-            </div>
-          )}
+          <Suspense
+            fallback={
+              <div className="flex h-full items-center justify-center">
+                <Loader size={50} />
+              </div>
+            }
+          >
+            {selectedChat ? (
+              <>
+                <ChatTopbar chat={selectedChat} onOpenProfile={handleOpenDetails} />
+                <ChatWindow chatId={selectedChat._id} currentUser={user} />
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full space-y-4">
+                <p className="text-2xl text-gray-500">Select a chat to start messaging</p>
+                <MessageCirclePlus className="text-gray-400" size={80} />
+              </div>
+            )}
+          </Suspense>
         </div>
       </div>
 
-      {/* Group Modal */}
-      <GroupModal
-        isOpen={isGroupModalOpen}
-        onClose={() => setIsGroupModalOpen(false)}
-      />
+      <Suspense fallback={null}>
+        {/* Group Modal */}
+        <GroupModal
+          isOpen={isGroupModalOpen}
+          onClose={() => setIsGroupModalOpen(false)}
+        />
 
-      {/* Profile Modal */}
-      <ProfileModal
-        chat={selectedChat}
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-      />
+        {/* Profile Modal */}
+        <ProfileModal
+          chat={selectedChat}
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+        />
 
-      {/* Update Group Modal */}
-      <UpdateGroupModal
-        chat={selectedChat}
-        isOpen={isUpdateGroupModalOpen}
-        onClose={() => setIsUpdateGroupModalOpen(false)}
-      />
+        {/* Update Group Modal */}
+        <UpdateGroupModal
+          chat={selectedChat}
+          isOpen={isUpdateGroupModalOpen}
+          onClose={() => setIsUpdateGroupModalOpen(false)}
+        />
+      </Suspense>
     </div>
   );
 };
