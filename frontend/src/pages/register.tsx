@@ -42,13 +42,13 @@ const RegisterPage = () => {
       formData.append("password", data.password);
 
       // Only append image if it exists
-      if (data.image && data.image instanceof File) {
+      if (data?.image && data?.image instanceof File) {
         formData.append("pic", data.image);
       }
 
       const result = await register(formData);
 
-      if (result.success) {
+      if (result?.success) {
         toast.success("Signup successful!");
         reset({
           name: "",
@@ -81,7 +81,7 @@ const RegisterPage = () => {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col gap-y-3"
+          className="flex flex-col gap-y-1"
         >
           {/* Name Field */}
           <div className="space-y-1">

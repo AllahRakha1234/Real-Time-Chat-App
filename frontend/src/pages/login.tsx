@@ -56,7 +56,7 @@ const LoginPage = () => {
           Log in to your account
         </h2>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
           {/* Email Field */}
           <div className="space-y-2">
             <Controller
@@ -119,7 +119,7 @@ const LoginPage = () => {
           {/* Forgot Password */}
           <div className="flex justify-end -mt-5">
             <Link to="/forgot-password">
-              <Button variant="link">Forgot Password?</Button>
+              <Button variant="link" type="button">Forgot Password?</Button>
             </Link>
           </div>
 
