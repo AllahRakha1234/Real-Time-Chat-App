@@ -15,6 +15,7 @@ import logger from "./config/logger/index.js";
 import morganMiddleware from "./config/logger/morgan.js";
 import { Server } from "socket.io";
 import { customRateLimiter } from "./middlewares/rateLimiter.js";
+import { logRequest } from "./middlewares/logRequest.js";
 
 // Get current file directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -30,8 +31,13 @@ connectDB();
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Logging
-app.use(morganMiddleware);
+// Use Morgan in dev environment only
+if (process.env.NODE_ENV !== "production") {
+  app.use(morganMiddleware);
+}
+
+// Middleware to log API requests
+app.use(logRequest);
 
 app.use(express.json()); // To accept the json data
 

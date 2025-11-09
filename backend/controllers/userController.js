@@ -72,14 +72,16 @@ const loginUser = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ email: email });
 
   if (user && (await user.matchPassword(password))) {
-    res.status(200).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isAdmin: user.isAdmin,
-      pic: user.pic,
+    const data = {
+      ...user.toObject(),
       token: await generateToken(user._id),
-    });
+    };
+
+    delete data?.password; // Deleting password hash from response
+    delete data?.__v;
+
+    res.status(200).json({ success: true, data, message: "User logged in successfully" });
+
   } else {
     res.status(401);
     throw new Error("Invalid Email or Password Found");
