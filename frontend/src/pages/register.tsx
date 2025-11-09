@@ -5,10 +5,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "../store/auth.store";
 import { signupSchema, type SignupSchema } from "../lib/validations/auth";
 import { toast } from "react-hot-toast";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 
 const RegisterPage = () => {
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const {
     control,
     handleSubmit,
@@ -136,7 +141,7 @@ const RegisterPage = () => {
           </div>
 
           {/* Password Field */}
-          <div className="space-y-1">
+          <div className="space-y-1 relative">
             <Controller
               name="password"
               control={control}
@@ -145,12 +150,15 @@ const RegisterPage = () => {
                   <Input
                     label="Password"
                     placeholder="Enter password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     value={field.value || ""}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     name={field.name}
                   />
+                  <Button variant="simple" onClick={() => setShowPassword(!showPassword)} className="absolute text-primary top-8 right-2 p-0" type="button">
+                    {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                  </Button>
                   {fieldState.error && (
                     <p className="text-red-500 text-sm ml-1">
                       {fieldState.error.message}
@@ -162,7 +170,7 @@ const RegisterPage = () => {
           </div>
 
           {/* Confirm Password Field */}
-          <div className="space-y-1">
+          <div className="space-y-1 relative">
             <Controller
               name="confirmPassword"
               control={control}
@@ -171,12 +179,15 @@ const RegisterPage = () => {
                   <Input
                     label="Confirm Password"
                     placeholder="Enter confirm password"
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     value={field.value || ""}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     name={field.name}
                   />
+                  <Button variant="simple" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute text-primary top-8 right-2 p-0" type="button">
+                    {showConfirmPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                  </Button>
                   {fieldState.error && (
                     <p className="text-red-500 text-sm ml-1">
                       {fieldState.error.message}

@@ -5,10 +5,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "../store/auth.store";
 import { loginSchema, type LoginSchema } from "../lib/validations/auth";
 import { toast } from "react-hot-toast";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 
 const LoginPage = () => {
+
+  const [showPassword, setShowPassword] = useState(false);
+
   const {
     control,
     handleSubmit,
@@ -34,7 +38,7 @@ const LoginPage = () => {
 
       if (result?.success && result?.user) {
         navigate("/chat");
-        toast.success(result?.message ??"Welcome back!");
+        toast.success(result?.message ?? "Welcome back!");
       } else {
         toast.error("Login failed");
       }
@@ -84,7 +88,7 @@ const LoginPage = () => {
           </div>
 
           {/* Password Field */}
-          <div className="space-y-2">
+          <div className="relative space-y-2">
             <Controller
               name="password"
               control={control}
@@ -93,12 +97,15 @@ const LoginPage = () => {
                   <Input
                     label="Password"
                     placeholder="Enter your password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     value={field.value || ""}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     name={field.name}
                   />
+                  <Button variant="simple" onClick={() => setShowPassword(!showPassword)} className="absolute text-primary top-8 right-2 p-0" type="button">
+                    {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                  </Button>
                   {fieldState.error && (
                     <p className="text-red-500 text-sm ml-1">
                       {fieldState.error.message}

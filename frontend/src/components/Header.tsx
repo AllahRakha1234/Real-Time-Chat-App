@@ -32,6 +32,7 @@ import useDebounce from "@/hooks/useDebounce";
 import SearchResultItem from "./common/SearchUserItem";
 import NotificationsMenu from "./Notifications/NotificationsMenu";
 import ProfileModal from "@/components/modals/ProfileModal";
+import { useMessageStore } from "@/store/message.store";
 
 
 const Header = () => {
