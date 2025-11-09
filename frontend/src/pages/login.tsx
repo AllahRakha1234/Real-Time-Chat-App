@@ -32,9 +32,9 @@ const LoginPage = () => {
     try {
       const result = await login(data);
 
-      if (result.success && result.user) {
+      if (result?.success && result?.user) {
         navigate("/chat");
-        toast.success("Welcome back!");
+        toast.success(result?.message ??"Welcome back!");
       } else {
         toast.error("Login failed");
       }

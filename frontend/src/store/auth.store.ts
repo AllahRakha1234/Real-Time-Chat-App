@@ -14,16 +14,9 @@ interface AuthState {
   resetEmail?: string | null;
   resetToken?: string | null;
 
-  // Auth actions
-  login: (credentials: LoginCredentials) => Promise<{ success: boolean; user?: User; error?: string }>;
-  register: (credentials: FormData) => Promise<{ success: boolean; user?: User; error?: string }>;
-  searchUser: (searchTerm: string, page: number, limit: number) => Promise<{
-    success: boolean;
-    user?: User[];
-    totalCounts?: number,
-    hasNext?: boolean,
-    error?: string;
-  }>;
+  login: (credentials: LoginCredentials) => Promise<{ success: boolean; user?: User; message?: string; error?: string }>;
+  register: (credentials: FormData) => Promise<{ success: boolean; user?: User; message?: string; error?: string }>;
+  searchUser: (searchTerm: string, page: number, limit: number) => Promise<{ success: boolean; user?: User[]; totalCounts?: number; hasNext?: boolean; message?: string; error?: string }>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   verifyOtp: (otp: string) => Promise<{ success: boolean; message?: string; error?: string }>;
@@ -49,11 +42,18 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const { data } = await api.post("/api/user/login", { email, password });
-          set({ user: data, isLoading: false });
-          return { success: true, user: data };
+          const res = await api.post("/api/user/login", { email, password });
+          const user = res?.data?.data ?? null;
+
+          set({ user, isLoading: false });
+
+          return {
+            success: res?.data?.success ?? false,
+            user,
+            message: res?.data?.message ?? "Login successful",
+          };
         } catch (err: any) {
-          const errorMessage = err.response?.data?.message || err.message || "Login failed";
+          const errorMessage = err?.response?.data?.message ?? err?.message ?? "Login failed";
           set({ error: errorMessage, isLoading: false, user: null });
           return { success: false, error: errorMessage };
         }
@@ -62,24 +62,31 @@ export const useAuthStore = create<AuthState>()(
       register: async (formData: FormData) => {
         set({ isLoading: true, error: null });
         try {
-          const { data } = await api.post("/api/user", formData);
-          set({ user: data, isLoading: false });
-          return { success: true, user: data };
+          const res = await api.post("/api/user", formData);
+          const user = res?.data?.data ?? null;
+
+          set({ user, isLoading: false });
+
+          return {
+            success: res?.data?.success ?? true,
+            user,
+            message: res?.data?.message ?? "Registration successful",
+          };
         } catch (err: any) {
-          const errorMessage = err.response?.data?.message || err.message || "Registration failed";
+          const errorMessage = err?.response?.data?.message ?? err?.message ?? "Registration failed";
           set({ error: errorMessage, isLoading: false });
           return { success: false, error: errorMessage };
         }
       },
+
       searchUser: async (searchTerm: string, page: number, limit: number) => {
         set({ isLoading: true, error: null, searchResults: [] });
 
         try {
-          const response = await api.get(`/api/user?page=${page}&limit=${limit}`, {
-            params: { search: searchTerm },
-          });
-
-          const { data: users, totalCounts, hasNext } = response.data;
+          const res = await api.get(`/api/user?page=${page}&limit=${limit}`, { params: { search: searchTerm } });
+          const users = res?.data?.data ?? [];
+          const totalCounts = res?.data?.totalCounts ?? 0;
+          const hasNext = res?.data?.hasNext ?? false;
 
           set({
             searchResults: users,
@@ -88,12 +95,15 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
           });
 
-          return { success: true, users, totalCounts, hasNext };
+          return {
+            success: true,
+            user: users,
+            totalCounts,
+            hasNext,
+            message: res?.data?.message ?? "Users fetched successfully",
+          };
         } catch (err: any) {
-          const errorMessage =
-            err.response?.data?.message ||
-            err.message ||
-            "Failed fetching Users";
+          const errorMessage = err?.response?.data?.message ?? err?.message ?? "Failed fetching users";
 
           set({
             error: errorMessage,
@@ -106,6 +116,7 @@ export const useAuthStore = create<AuthState>()(
           return { success: false, error: errorMessage };
         }
       },
+
       logout: () => {
         set({
           user: null,
@@ -121,77 +132,64 @@ export const useAuthStore = create<AuthState>()(
 
       forgotPassword: async (email: string) => {
         set({ isLoading: true, error: null });
-
         try {
-          const { data } = await api.post("/api/user/sendOtp", { email });
+          const res = await api.post("/api/user/sendOtp", { email });
+          set({ resetEmail: email ?? null, isLoading: false });
 
-          set({
-            resetEmail: email, // store email
-            isLoading: false,
-          });
-
-          return { success: true, message: data.message };
+          return { success: true, message: res?.data?.message ?? "OTP sent successfully" };
         } catch (err: any) {
-          const errorMessage = err.response?.data?.message || err.message || "Failed to send OTP";
+          const errorMessage = err?.response?.data?.message ?? err?.message ?? "Failed to send OTP";
           set({ error: errorMessage, isLoading: false });
           return { success: false, error: errorMessage };
         }
       },
+
       verifyOtp: async (otp: string) => {
         set({ isLoading: true, error: null });
-
         try {
-          const email = get().resetEmail;
+          const email = get()?.resetEmail ?? null;
           if (!email) throw new Error("No email set for verification");
 
-          const { data } = await api.post("/api/user/verifyOtp", { email, otp });
+          const res = await api.post("/api/user/verifyOtp", { email, otp });
+          set({ resetToken: res?.data?.resetToken ?? null, isLoading: false });
 
-          set({
-            resetToken: data.resetToken,
-            isLoading: false,
-          });
-
-          return { success: true, message: data.message };
+          return { success: true, message: res?.data?.message ?? "OTP verified successfully" };
         } catch (err: any) {
-          const errorMessage = err.response?.data?.message || "OTP verification failed";
+          const errorMessage = err?.response?.data?.message ?? err?.message ?? "OTP verification failed";
           set({ error: errorMessage, isLoading: false });
           return { success: false, error: errorMessage };
         }
       },
-      resetPassword: async (newPassword: string) => {
-        const { resetToken } = get();
 
+      resetPassword: async (newPassword: string) => {
+        set({ isLoading: true, error: null });
+        const resetToken = get()?.resetToken ?? null;
         if (!resetToken) {
+          set({ isLoading: false });
           return { success: false, error: "Missing reset token" };
         }
-        set({ isLoading: true, error: null });
+
         try {
-          const { data } = await api.post("/api/user/resetPassword", {
-            resetToken,
-            newPassword,
-          });
-          // clear values after success
-          set({
-            resetEmail: null,
-            resetToken: null,
-            isLoading: false,
-          });
-          return { success: true, message: data.message };
+          const res = await api.post("/api/user/resetPassword", { resetToken, newPassword });
+          set({ resetEmail: null, resetToken: null, isLoading: false });
+
+          return { success: true, message: res?.data?.message ?? "Password reset successfully" };
         } catch (err: any) {
-          const errorMessage = err.response?.data?.message || "Password reset failed";
+          const errorMessage = err?.response?.data?.message ?? err?.message ?? "Password reset failed";
           set({ error: errorMessage, isLoading: false });
           return { success: false, error: errorMessage };
         }
       },
+
       clearError: () => set({ error: null }),
       clearSearchResults: () => set({ searchResults: [], totalCounts: 0, hasNext: false }),
     }),
     {
       name: "auth-storage",
       partialize: (state) => ({
-        user: state.user,
-        resetEmail: state.resetEmail,
-        resetToken: state.resetToken,
+        user: state?.user ?? null,
+        resetEmail: state?.resetEmail ?? null,
+        resetToken: state?.resetToken ?? null,
       }),
     }
   )
