@@ -55,8 +55,8 @@ const LoginPage = () => {
   return (
     <div className="my-background min-h-screen w-full flex justify-center items-center flex-col px-4">
       <div className="flex flex-col w-full max-w-md bg-white py-12 px-8 sm:px-12 rounded-3xl shadow-lg">
-        <h1 className="text-3xl font-bold text-center">SmartTalk</h1>
-        <h2 className="text-xl font-medium text-center text-muted-foreground my-4">
+        <h1 className="text-3xl font-bold text-center font-heading">SmartTalk</h1>
+        <h2 className="text-xl font-medium font-primary text-center text-muted-foreground my-4">
           Log in to your account
         </h2>
 

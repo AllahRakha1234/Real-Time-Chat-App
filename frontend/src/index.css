@@ -1,4 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap");
+
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -76,6 +79,8 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --font-primary: "Work Sans", sans-serif;
+  --font-heading: "Raleway", sans-serif;
 }
 
 .dark {
@@ -117,9 +122,19 @@
   * {
     @apply m-0 p-0;
   }
+
   body {
     @apply bg-background text-foreground overflow-x-hidden;
-    font-family: "Work Sans", sans-serif;
+    font-family: var(--font-heading);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-primary);
   }
 }
 
@@ -139,24 +154,30 @@
 
 /* Custom Scrollbar */
 .custom-scrollbar {
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: var(--primary) transparent; /* Firefox */
-  padding-right: 1px; /* Adds space between content & scrollbar */
+  scrollbar-width: thin;
+  /* Firefox */
+  scrollbar-color: var(--primary) transparent;
+  /* Firefox */
+  padding-right: 1px;
+  /* Adds space between content & scrollbar */
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 2px; /* even thinner */
+  width: 2px;
+  /* even thinner */
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
-  margin-block: 2px; /* small margin at top/bottom */
+  margin-block: 2px;
+  /* small margin at top/bottom */
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: var(--primary);
   border-radius: 9999px;
-  border: 1px solid transparent; /* creates spacing effect */
-  background-clip: content-box;  /* ensures border creates space */
+  border: 1px solid transparent;
+  /* creates spacing effect */
+  background-clip: content-box;
+  /* ensures border creates space */
 }
-
